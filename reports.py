@@ -36,7 +36,7 @@ from reportlab.platypus import (  # noqa: E402
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS = os.path.join(APP_DIR, "report_assets")
-LOGO = os.path.join(ASSETS, "logo.png")
+LOGO = os.path.join(ASSETS, "logo.jpg")
 
 MISSING_LABEL = "Nedostaje"
 
@@ -187,7 +187,7 @@ def _table(data, col_widths, header_rows=1, total_row=True, label_cols=1, font_s
     return t
 
 
-def _bar_chart(labels, percents, width_cm=16, height_cm=None):
+def _bar_chart(labels, percents, width_cm=16, height_cm=None, suffix=""):
     """Vodoravni stupčasti grafikon postotaka (prvi redak = dno grafikona, kao u Excelu)."""
     font = _chart_font()
     height_cm = height_cm or max(4.5, 1.15 * len(labels) + 1.5)
@@ -201,7 +201,7 @@ def _bar_chart(labels, percents, width_cm=16, height_cm=None):
     if top > 0 and x_max < top + 3:
         x_max = top + 5
     ax.set_xlim(0, x_max)
-    ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: fmt(v, 1)))
+    ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: fmt(v, 1) + suffix))
     ax.tick_params(axis="x", labelsize=8, colors="#595959", length=0)
     ax.tick_params(axis="y", length=0)
     ax.grid(axis="x", color="#D9D9D9", linewidth=0.7)
@@ -210,17 +210,26 @@ def _bar_chart(labels, percents, width_cm=16, height_cm=None):
         ax.spines[side].set_visible(False)
     ax.spines["left"].set_color("#BFBFBF")
     for yi, v in zip(y, vals):
-        ax.text(v + x_max * 0.01, yi, fmt(v, 1), va="center", fontsize=8, fontfamily=font, color="#404040")
+        ax.text(v + x_max * 0.01, yi, fmt(v, 1) + suffix, va="center", fontsize=8, fontfamily=font, color="#404040")
     for t in ax.get_xticklabels():
         t.set_fontfamily(font)
+    return figure_image(fig, width_cm, height_cm)
+
+
+def figure_image(fig, width_cm, height_cm, dpi=150):
+    """Pretvara matplotlib grafikon u sliku za PDF (sažeta paleta boja = mala datoteka)."""
+    from PIL import Image as PILImage
     fig.patch.set_edgecolor("#D9D9D9")
     fig.patch.set_linewidth(1.2)
     fig.tight_layout(pad=0.8)
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png", edgecolor=fig.get_edgecolor())
+    raw = io.BytesIO()
+    fig.savefig(raw, format="png", dpi=dpi, edgecolor=fig.get_edgecolor())
     plt.close(fig)
-    buf.seek(0)
-    img = Image(buf, width=width_cm * cm, height=height_cm * cm)
+    raw.seek(0)
+    small = io.BytesIO()
+    PILImage.open(raw).convert("RGB").quantize(colors=48).save(small, format="PNG", optimize=True)
+    small.seek(0)
+    img = Image(small, width=width_cm * cm, height=height_cm * cm)
     img.hAlign = "CENTER"
     return img
 
@@ -438,6 +447,10 @@ REPORTS = {
         # Ankete se grupiraju po ovim podacima: jedan izvještaj = jedan nastavnik na jednom kolegiju
         "group_by": ["Fakultet", "Kolegij", "Nastavnik", "Nositelj predmeta", "Identifikacijski ključ"],
         "file_name": ["Nastavnik", "Kolegij"],
+        "needs_semester": True,
+        "year_label": "Akademska godina",
+        "year_offset": 0,
+        "min_surveys": 0,
     },
 }
 
@@ -460,9 +473,9 @@ def build_report(form_type, df, info, semester, academic_year, report_date=None)
     return REPORTS[form_type]["build"](df, info, semester, academic_year, report_date)
 
 
-def default_academic_year(today=None):
+def default_academic_year(today=None, offset=0):
     today = today or date.today()
-    start = today.year if today.month >= 9 else today.year - 1
+    start = (today.year if today.month >= 9 else today.year - 1) + offset
     return f"{start}./{start + 1}."
 
 
@@ -481,8 +494,25 @@ def group_surveys(form_type, df_all):
             df[k] = ""
         df[k] = df[k].fillna("").astype(str).str.strip()
     required = [k for k in keys if k != "Identifikacijski ključ"]
+    if not keys:
+        return [], 0
     incomplete = (df[required] == "").any(axis=1)
     groups = []
     for values, part in df[~incomplete].groupby(keys, sort=True):
         groups.append((dict(zip(keys, values)), part.reset_index(drop=True)))
     return groups, int(incomplete.sum())
+
+
+# Izvještaji za studije (preddiplomski, diplomski, integrirani) - u zasebnoj datoteci
+import reports_study  # noqa: E402
+
+for _form in reports_study.LEVELS:
+    REPORTS[_form] = {
+        "build": reports_study.make_builder(_form),
+        "group_by": ["Fakultet", "Studijski program"],  # Jedan izvještaj = jedan studijski program
+        "file_name": ["Studijski program"],
+        "needs_semester": False,
+        "year_label": "Akademska godina završetka studija",
+        "year_offset": -1,  # Izvještaj se radi za prošlu akademsku godinu
+        "min_surveys": reports_study.MIN_SURVEYS,
+    }

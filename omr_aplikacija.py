@@ -98,7 +98,7 @@ CONFIG = {
 
     "Diplomski studij": {
         "pdf": "Anketa diplomski.pdf",
-        "scan_mode": "A4_TWO_PAGES",  # ili A3_SINGLE
+        "scan_mode": "A4_TWO_PAGES",  # Dvije A4 slike po anketi: 1. stranica pa 2. stranica
         "info_fields": [{"name": "Fakultet"}, {"name": "Studijski program"}],
         "batch_label": ["Studijski program"],
         "columns": [
@@ -332,7 +332,7 @@ def scan_units(scan_mode, files_sorted):
     """Grupira učitane slike u ankete: lista (oznaka, [datoteke])."""
     if scan_mode == "A4_SINGLE":
         return [(f.name, [f]) for f in files_sorted]
-    if scan_mode == "A3_TWO_IMAGES":
+    if scan_mode in ("A3_TWO_IMAGES", "A4_TWO_PAGES"):
         return [(f"{a.name} + {b.name}", [a, b]) for a, b in zip(files_sorted[0::2], files_sorted[1::2])]
     return None  # Način skeniranja još nije podržan
 
@@ -345,6 +345,9 @@ def align_unit(scan_mode, unit_files, ref_images):
     """Učitava slike jedne ankete i poravnava svaku stranicu prema PDF predlošku."""
     if scan_mode == "A4_SINGLE":
         return [align_to_reference(decode_image(unit_files[0]), ref_images[0])]
+    if scan_mode == "A4_TWO_PAGES":
+        # Dvije A4 slike po anketi: 1. slika = Str. 1, 2. slika = Str. 2
+        return [align_to_reference(decode_image(f), ref) for f, ref in zip(unit_files, ref_images)]
     # A3_TWO_IMAGES: 1. slika (desna polovica = Str. 1), 2. slika (lijevo = Str. 2, desno = Str. 3)
     img1, img2 = decode_image(unit_files[0]), decode_image(unit_files[1])
     w1, w2 = img1.shape[1], img2.shape[1]
@@ -413,12 +416,16 @@ else:
 if reports.has_report(form_type):
     st.sidebar.markdown("---")
     st.sidebar.subheader("📄 Postavke izvještaja")
-    _semesters = ["zimski", "ljetni"]
-    report_semester = st.sidebar.selectbox(
-        "Semestar", _semesters, index=_semesters.index(reports.default_semester()), key="report_semester"
-    )
+    report_def = reports.REPORTS[form_type]
+    report_semester = None
+    if report_def["needs_semester"]:
+        _semesters = ["zimski", "ljetni"]
+        report_semester = st.sidebar.selectbox(
+            "Semestar", _semesters, index=_semesters.index(reports.default_semester()), key="report_semester"
+        )
     report_year = st.sidebar.text_input(
-        "Akademska godina", value=reports.default_academic_year(), key="report_year"
+        report_def["year_label"], value=reports.default_academic_year(offset=report_def["year_offset"]),
+        key=f"report_year|{report_def['year_offset']}",
     ).strip()
     report_date = st.sidebar.date_input("Datum izvještaja", format="DD.MM.YYYY", key="report_date")
 
@@ -444,7 +451,8 @@ for start in range(0, len(info_fields), 3):
 missing_info = [f["name"] for f in info_fields if not f.get("optional") and not info_values[f["name"]]]
 
 uploaded_files = st.file_uploader(
-    "3. Učitajte skenirane JPEG slike (za A3 obrasce učitajte parove slika redom: naslovna pa unutarnja):",
+    "3. Učitajte skenirane JPEG slike (A3 obrasci: parovi slika redom, naslovna pa unutarnja; "
+    "diplomski: parovi slika redom, 1. pa 2. stranica):",
     type=["jpg", "jpeg", "png"], accept_multiple_files=True
 )
 
@@ -617,8 +625,15 @@ if drive_service is not None:
                 st.markdown("#### 📄 PDF izvještaji")
                 groups, incomplete = reports.group_surveys(form_type, df_all)
                 if incomplete:
-                    st.warning(f"{incomplete} anketa nema upisane sve podatke (fakultet, kolegij, nastavnik, "
-                               "nositelj) pa ne ulaze u izvještaje.")
+                    needed = [k for k in reports.REPORTS[form_type]["group_by"] if k != "Identifikacijski ključ"]
+                    st.warning(f"{incomplete} anketa nema upisane sve podatke ({', '.join(needed).lower()}) "
+                               "pa ne ulaze u izvještaje.")
+                min_n = reports.REPORTS[form_type]["min_surveys"]
+                too_small = [g for g in groups if len(g[1]) < min_n]
+                groups = [g for g in groups if len(g[1]) >= min_n]
+                if too_small:
+                    st.info(f"Kriterij za ispis izvješća je najmanje {min_n} anketa. Preskače se: " + "; ".join(
+                        f"{reports.report_file_name(form_type, gi)[:-4]} ({len(gd)})" for gi, gd in too_small))
                 faculties = sorted({g_info["Fakultet"] for g_info, _ in groups})
                 if not groups:
                     st.info("Nema anketa s upisanim podacima za izvještaje.")
