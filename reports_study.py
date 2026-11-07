@@ -47,6 +47,7 @@ GRADES = [(v, fmt(v, 1).replace(",0", "")) for v in (2, 2.5, 3, 3.5, 4, 4.5, 5)]
 FIRST_CHOICE = [(1, "Da"), (2, "Uglavnom da"), (3, "Ne")]
 YES_NO = [(1, "Da"), (2, "Ne")]
 OVERALL = [(1, "Nedovoljan (1)"), (2, "Dovoljan (2)"), (3, "Dobar (3)"), (4, "Vrlo dobar (4)"), (5, "Odličan (5)")]
+OVERALL_IZVRSTAN = OVERALL[:4] + [(5, "Izvrstan (5)")]
 RESPONSIBILITY_PREPARED = "Osjećaju se pripremljeni za stručni rad"
 RESPONSIBILITY = [(1, "Uglavnom odgovornost studija"), (2, "Dijelom moja, a dijelom studija"),
                   (3, "Uglavnom moja odgovornost")]
@@ -71,8 +72,14 @@ def _a(col, code, text, cats, kind, **extra):
     return dict(col=col, code=code, text=text, cats=cats, kind=kind, **extra)
 
 
+PARENTS = {"B": "Rad službi i opći uvjeti studiranja na visokom učilištu",
+           "E": "Odnos prema studentima i podrška u studiranju"}
+
+
 def _g(code, title, subject, scale, items):
-    return dict(code=code, title=title, subject=subject, scale=scale, items=items)
+    """Skup pitanja. Kodovi B1/B2 i E1/E2/E3 prikazuju se kao podskupine cjelina B i E."""
+    parent = code[0] if len(code) == 2 and code[0] in PARENTS else None
+    return dict(code=code, title=title, subject=subject, scale=scale, items=items, parent=parent)
 
 
 def _items(prefix_code, cols, numbers, texts):
@@ -179,9 +186,10 @@ LEVELS = {
             "Za studije na Sveučilištu u Zagrebu, organizirane prema načelu 3+2 i 4+1, završio je ciklus diplomskog "
             "studija provedenog prema načelima Bolonjskog procesa. Ured za upravljanje kvalitetom organizirao je i "
             "proveo anketu s ciljem prikupljanja informacija o iskustvima vezanima uz izvedbu diplomskih studija. "
-            "U ovome izvještaju prikazani su rezultati procjena studenata prikupljenih tijekom posljednje akademske "
-            "godine.",
+            "U ovome izvještaju prikazani su rezultati procjena studenata prikupljenih tijekom akademske godine "
+            "{year}.",
         ],
+        overall_labels=OVERALL,
         aim=("U sklopu vrjednovanja diplomskog studija pripremljena je anketa za studente koji su završili "
              "jednogodišnji ili dvogodišnji diplomski studij, a čiji je cilj vrjednovanje različitih vidika "
              "diplomskog studija u cjelini."),
@@ -198,17 +206,17 @@ LEVELS = {
         a_items=[
             _a("Ocjena Dipl", "A.5", "Prosječna ocjena tijekom diplomskog studija navedena od strane studenata",
                GRADES, "grade", what="diplomskog studija"),
-            _a("Ocjena Preddipl", "A.6", "Prosječna ocjena tijekom preddiplomskog studija navedena od strane studenata",
-               GRADES, "grade", what="preddiplomskog studija"),
+            _a("Ocjena Preddipl", "A.6", "Prosječna ocjena tijekom prijediplomskog studija navedena od strane studenata",
+               GRADES, "grade", what="prijediplomskog studija"),
             _a("Prvi izbor", "A.7", "Je li studij koji ste završili bio Vaš prvi izbor?", FIRST_CHOICE, "first_choice"),
             _a("Nastavak studija", "A.8", "Studij koji ste završili predstavlja",
-               [(1, "Nastavak preddiplomskog studija"), (2, "Različit diplomski studij")], "choice",
-               lead=("Studenti su nakon preddiplomskog studija imali mogućnost nastaviti studij na diplomskoj razini "
+               [(1, "Nastavak prijediplomskog studija"), (2, "Različit diplomski studij")], "choice",
+               lead=("Studenti su nakon prijediplomskog studija imali mogućnost nastaviti studij na diplomskoj razini "
                      "na istom fakultetu ili upisati diplomski studij koji ne predstavlja nastavak njihovog "
-                     "preddiplomskog studija (na drugom fakultetu ili na istom fakultetu, ali uz promjenu osnovnog "
+                     "prijediplomskog studija (na drugom fakultetu ili na istom fakultetu, ali uz promjenu osnovnog "
                      "područja)."),
-               phrases=["odgovara da diplomski studij predstavlja nastavak njihovog preddiplomskog studija",
-                        "navodi da je njihov diplomski studij različit od preddiplomskog"]),
+               phrases=["odgovara da diplomski studij predstavlja nastavak njihovog prijediplomskog studija",
+                        "navodi da je njihov diplomski studij različit od prijediplomskog"]),
         ],
         groups=[
             _g("B", "Studijski program", "studijski program", SATISFACTION, _items("B", [f"B{i}" for i in range(1, 8)], range(1, 8), [
@@ -251,52 +259,56 @@ LEVELS = {
     ),
     # -------------------------------------------------------------- PREDDIPLOMSKI
     "Preddiplomski studij": dict(
-        level="preddiplomski", level_gen="preddiplomskog", level_pl_gen="preddiplomskih",
-        title="Vrjednovanje preddiplomskih studija od strane studenata koji su tijekom akademske godine {year} "
+        level="prijediplomski", level_gen="prijediplomskog", level_pl_gen="prijediplomskih",
+        title="Vrjednovanje prijediplomskih studija od strane studenata koji su tijekom akademske godine {year} "
               "završili studij",
         intro=[
-            "Za studije na Sveučilištu u Zagrebu, organizirane prema načelu 3+2 i 4+1, završio je ciklus "
-            "preddiplomskog studija provedenog prema načelima Bolonjskog procesa. Ured za upravljanje kvalitetom "
-            "organizirao je i proveo anketu s ciljem prikupljanja informacija o iskustvima vezanima uz izvedbu "
-            "preddiplomskih studija. U ovome izvještaju prikazani su rezultati procjena studenata prikupljenih "
-            "tijekom posljednje akademske godine.",
+            "Za dio studija na Sveučilištu u Zagrebu, organiziranih prema načelu 3+2 i 4+1, protekle akademske "
+            "godine završio je ciklus prijediplomskog studija provedenog prema načelima Bolonjskog procesa. Ured za "
+            "upravljanje kvalitetom organizirao je i proveo anketu s ciljem prikupljanja informacija o iskustvima "
+            "vezanima uz izvedbu prijediplomskih studija. U ovome izvještaju prikazani su rezultati procjena studenata "
+            "prikupljenih tijekom akademske godine {year}.",
         ],
-        aim=("U sklopu vrjednovanja preddiplomskog studija pripremljena je anketa za studente koji su završili "
-             "trogodišnji ili četverogodišnji preddiplomski studij, a čiji je cilj vrjednovanje različitih vidika "
-             "preddiplomskog studija u cjelini."),
-        sections=["A. Podaci o studentici/studentu i završenom preddiplomskom studiju",
-                  "B. Rad službi i opći uvjeti studiranja na visokom učilištu", "C. Studijski program",
-                  "D. Izvedba nastave i vrjednovanje znanja", "E. Odnos prema studentima i podrška u studiranju",
+        overall_labels=OVERALL_IZVRSTAN,
+        aim=("U sklopu vrjednovanja prijediplomskog studija pripremljena je anketa za studente koji su završili "
+             "trogodišnji ili četverogodišnji prijediplomski studij, a čiji je cilj vrjednovanje različitih vidika "
+             "prijediplomskog studija u cjelini."),
+        sections=["A. Podaci o studentici/studentu i završenom prijediplomskom studiju",
+                  "B. Rad službi i opći uvjeti studiranja na visokom učilištu",
+                  "C. Studijski program (procjene se odnose na studij u cjelini)",
+                  "D. Izvedba nastave i vrjednovanje znanja (procjene se odnose na studij u cjelini)",
+                  "E. Odnos prema studentima i podrška u studiranju",
                   "F. Opća procjena ishoda", "G. Prijedlozi i komentari"],
-        n_questions=74,
+        n_questions=75,
         population=("Ciljna populacija su studenti koji su tijekom akademske godine {year} završili neki od "
-                    "preddiplomskih studija na Sveučilištu u Zagrebu. Sve procjene odnosile su se na njihov "
-                    "preddiplomski studij. Za svaku anketiranu jedinicu tiskan je potreban broj anketnih upitnika u "
-                    "skladu s brojem studenata koji su bili upisani u posljednju godinu svojeg preddiplomskog studija, "
+                    "prijediplomskih studija na Sveučilištu u Zagrebu. Sve procjene odnosile su se na njihov "
+                    "prijediplomski studij. Za svaku anketiranu jedinicu tiskan je potreban broj anketnih upitnika u "
+                    "skladu s brojem studenata koji su bili upisani u posljednju godinu svojeg prijediplomskog studija, "
                     "a svakom je studijskom programu dodijeljen zasebni kod. Studenti su anketu ispunili u studentskoj "
-                    "službi (referadi) pri obavljanju administrativnih poslova vezanih za završetak preddiplomskog "
+                    "službi (referadi) pri obavljanju administrativnih poslova vezanih za završetak prijediplomskog "
                     "studija."),
         a_items=[
-            _a("Ocjena preddipl", "A.4", "Prosječna ocjena tijekom studija navedena od strane studenata",
-               GRADES, "grade", what="preddiplomskog studija"),
+            _a("Ocjena preddipl", "A.4", "Prosječna ocjena tijekom prijediplomskog studija navedena od strane studenata",
+               GRADES, "grade", what="prijediplomskog studija"),
             _a("Vrsta studiranja", "A.5", "Vrsta studiranja",
-               [(1, "Uz potporu Ministarstva"), (2, "Iz osobnih potreba (uz plaćanje)")], "choice",
+               [(1, "Uz potporu Ministarstva"), (2, "Iz osobnih potreba")], "choice",
                phrases=["studiralo je uz potporu Ministarstva", "studiralo je iz osobnih potreba (uz plaćanje)"]),
-            _a("Prvi izbor", "A.6", "Je li preddiplomski studij koji ste završili bio Vaš prvi izbor?",
+            _a("Prvi izbor", "A.6", "Je li prijediplomski studij koji ste završili bio Vaš prvi izbor?",
                FIRST_CHOICE, "first_choice"),
-            _a("Nastavak studija", "A.7", "Diplomski studij koji planiram upisati nakon završetka preddiplomskog studija",
-               [(1, "Nastavak preddiplomskog studija"), (2, "Različit diplomski studij")], "choice",
-               phrases=["planira upisati diplomski studij koji predstavlja nastavak njihovog preddiplomskog studija",
-                        "planira upisati diplomski studij različit od preddiplomskog"]),
+            _a("Nastavak studija", "A.7", "Diplomski studij koji planiram upisati nakon završetka prijediplomskog studija",
+               [(1, "Nastavak prijediplomskog studija"), (2, "Različit diplomski studij")], "choice",
+               phrases=["planira upisati diplomski studij koji predstavlja nastavak njihovog prijediplomskog studija",
+                        "planira upisati diplomski studij različit od prijediplomskog"]),
         ],
         groups=[
             _g("B1", "Rad administrativnih i stručnih službi", "rad administrativnih i stručnih službi", SATISFACTION,
                _items("B", [f"B{i}" for i in range(1, 11)], range(1, 11), B1_TEXTS)),
             _g("B2", "Uvjeti za studiranje u ustanovi", "uvjete za studiranje u ustanovi", SATISFACTION,
                _items("B", [f"b{i}" for i in range(11, 16)], range(11, 16), B2_TEXTS)),
-            _g("C", "Studijski program", "studijski program", SATISFACTION,
+            _g("C", "Studijski program: procjene se odnose na studij u cjelini", "studijski program", SATISFACTION,
                _items("C", [f"C{i}" for i in range(16, 24)], range(16, 24), PROGRAM_TEXTS_UG)),
-            _g("D", "Izvedba nastave i vrjednovanje znanja", "izvedbu nastave i vrjednovanje znanja", SATISFACTION,
+            _g("D", "Izvedba nastave i vrjednovanje znanja: procjene se odnose na studij u cjelini",
+               "izvedbu nastave i vrjednovanje znanja", SATISFACTION,
                _items("D", [f"D{i}" for i in range(24, 41)], range(24, 41), TEACHING_TEXTS)),
             _g("E1", "Odnos prema studentima", "odnos prema studentima", SATISFACTION,
                _items("E", [f"E{i}" for i in range(41, 46)], range(41, 46), E1_TEXTS)),
@@ -304,51 +316,55 @@ LEVELS = {
                _items("E", [f"e{i}" for i in range(46, 53)], range(46, 53), E2_TEXTS)),
             _g("E3", "Ostali uvjeti studiranja", "ostale uvjete studiranja", SATISFACTION,
                _items("E", [f"e{i}e" for i in range(53, 59)], range(53, 59), E3_TEXTS_UG)),
-            _g("F", "Opća procjena ishoda", "opću procjenu ishoda studija", EXTENT,
+            _g("F", "Opća procjena ishoda", "opću procjenu ishoda prijediplomskog studija", EXTENT,
                _items("F", [f"F{i}" for i in range(59, 67)], range(59, 67), [
                    "U kojoj mjeri je studij ispunio Vaša početna očekivanja?",
                    "U kojoj mjeri Vas je studij osposobio za rad u struci?",
                    "U kojoj mjeri Vas je studij pripremio za nastavak školovanja u struci?",
                    "Koliko ste zadovoljni cjelokupnim iskustvom studiranja?",
-                   "Koliko ste zadovoljni mogućnostima zaposlenja nakon preddiplomskog studija?",
-                   "Koliko je općenito bio težak i zahtjevan Vaš preddiplomski studij?",
+                   "Koliko ste zadovoljni mogućnostima zaposlenja nakon prijediplomskog studija?",
+                   "Koliko je općenito bio težak i zahtjevan Vaš prijediplomski studij?",
                    "U kojoj mjeri su ECTS bodovi usklađeni sa stvarnim nastavnim opterećenjem na kolegijima?",
                    "U kojoj mjeri su informacije koje ste o studiju imali prije upisa bile točne i korisne?"])),
         ],
         yes_no=[
             _yes_no("f67", "F.67", "Smatrate li da je organizacija studija prema načelu 3+2 korisna za Vašu struku?",
                     "3+2"),
-            _yes_no("f68", "F.68", "Kada biste ponovno birali biste li ponovno upisali isti preddiplomski studij?",
+            _yes_no("f68", "F.68", "Kada biste ponovno birali biste li ponovno upisali isti prijediplomski studij?",
                     "again"),
-            _yes_no("f69", "F.69", "S obzirom na Vaša iskustva, biste li drugima preporučili svoj preddiplomski "
+            _yes_no("f69", "F.69", "S obzirom na Vaša iskustva, biste li drugima preporučili svoj prijediplomski "
                     "studij?", "recommend"),
             _yes_no("f70", "F.70", "Namjeravate li u budućnosti upisati poslijediplomski studij (specijalistički ili "
                     "doktorski)?", "postgrad"),
         ],
         responsibility=("odgovornost za studij", "F.71"),
-        overall=("ukupna ocjena", "F", "Koju biste opću ocjenu dali svom preddiplomskom studiju?"),
+        overall=("ukupna ocjena", "F.72", "Koju biste opću ocjenu dali svom prijediplomskom studiju?"),
     ),
     # ---------------------------------------------------------------- INTEGRIRANI
     "Integrirani studij": dict(
         level="integrirani", level_gen="integriranog", level_pl_gen="integriranih",
-        title="Vrjednovanje integriranih preddiplomskih i diplomskih studija od strane studenata koji su tijekom "
+        title="Vrjednovanje integriranih prijediplomskih i diplomskih studija od strane studenata koji su tijekom "
               "akademske godine {year} završili studij",
         intro=[
-            "Na Sveučilištu u Zagrebu dio studija izvodi se kao integrirani preddiplomski i diplomski studij prema "
-            "načelima Bolonjskog procesa. Ured za upravljanje kvalitetom organizirao je i proveo anketu s ciljem "
-            "prikupljanja informacija o iskustvima vezanima uz izvedbu integriranih studija. U ovome izvještaju "
-            "prikazani su rezultati procjena studenata prikupljenih tijekom posljednje akademske godine.",
+            "Za dio studija na Sveučilištu u Zagrebu, organiziranih prema načelu 5+0, protekle akademske godine "
+            "završio je ciklus integriranog prijediplomskog i diplomskog studija provedenog prema načelima Bolonjskog "
+            "procesa. Ured za upravljanje kvalitetom organizirao je i proveo anketu s ciljem prikupljanja informacija "
+            "o iskustvima vezanima uz izvedbu integriranih studija. U ovome izvještaju prikazani su rezultati procjena "
+            "studenata prikupljenih tijekom akademske godine {year}.",
         ],
-        aim=("U sklopu vrjednovanja integriranog preddiplomskog i diplomskog studija pripremljena je anketa za "
-             "studente koji su završili integrirani studij, a čiji je cilj vrjednovanje različitih vidika studija "
-             "u cjelini."),
+        overall_labels=OVERALL_IZVRSTAN,
+        aim=("U sklopu vrjednovanja integriranih prijediplomskih i diplomskih studija pripremljena je anketa za "
+             "studente koji su završili integrirani studij, a čiji je cilj vrjednovanje različitih vidika takvog "
+             "studija u cjelini."),
         sections=["A. Podaci o studentici/studentu i završenom studiju",
-                  "B. Rad službi i opći uvjeti studiranja na visokom učilištu", "C. Studijski program",
-                  "D. Izvedba nastave i vrjednovanje znanja", "E. Odnos prema studentima i podrška u studiranju",
+                  "B. Rad službi i opći uvjeti studiranja na visokom učilištu",
+                  "C. Studijski program (procjene se odnose na studij u cjelini)",
+                  "D. Izvedba nastave i vrjednovanje znanja (procjene se odnose na studij u cjelini)",
+                  "E. Odnos prema studentima i podrška u studiranju",
                   "F. Opća procjena ishoda", "G. Prijedlozi i komentari"],
         n_questions=73,
         population=("Ciljna populacija su studenti koji su tijekom akademske godine {year} završili neki od "
-                    "integriranih preddiplomskih i diplomskih studija na Sveučilištu u Zagrebu. Sve procjene "
+                    "integriranih prijediplomskih i diplomskih studija na Sveučilištu u Zagrebu. Sve procjene "
                     "odnosile su se na njihov studij. Za svaku anketiranu jedinicu tiskan je potreban broj anketnih "
                     "upitnika u skladu s brojem studenata koji su bili upisani u posljednju godinu svojeg studija, a "
                     "svakom je studijskom programu dodijeljen zasebni kod. Studenti su anketu ispunili u studentskoj "
@@ -363,9 +379,10 @@ LEVELS = {
                _items("B", [f"B{i}" for i in range(1, 11)], range(1, 11), B1_TEXTS)),
             _g("B2", "Uvjeti za studiranje u ustanovi", "uvjete za studiranje u ustanovi", SATISFACTION,
                _items("B", [f"B{i}" for i in range(11, 16)], range(11, 16), B2_TEXTS)),
-            _g("C", "Studijski program", "studijski program", SATISFACTION,
+            _g("C", "Studijski program: procjene se odnose na studij u cjelini", "studijski program", SATISFACTION,
                _items("C", [f"C{i}" for i in range(16, 24)], range(16, 24), PROGRAM_TEXTS_UG)),
-            _g("D", "Izvedba nastave i vrjednovanje znanja", "izvedbu nastave i vrjednovanje znanja", SATISFACTION,
+            _g("D", "Izvedba nastave i vrjednovanje znanja: procjene se odnose na studij u cjelini",
+               "izvedbu nastave i vrjednovanje znanja", SATISFACTION,
                _items("D", [f"D{i}" for i in range(24, 41)], range(24, 41), TEACHING_TEXTS)),
             _g("E1", "Odnos prema studentima", "odnos prema studentima", SATISFACTION,
                _items("E", [f"E{i}" for i in range(41, 46)], range(41, 46), E1_TEXTS)),
@@ -373,7 +390,7 @@ LEVELS = {
                _items("E", [f"E{i}" for i in range(46, 53)], range(46, 53), E2_TEXTS)),
             _g("E3", "Ostali uvjeti studiranja", "ostale uvjete studiranja", SATISFACTION,
                _items("E", [f"E{i}" for i in range(53, 58)], range(53, 58), E3_TEXTS_INT)),
-            _g("F", "Opća procjena ishoda", "opću procjenu ishoda studija", EXTENT,
+            _g("F", "Opća procjena ishoda", "opću procjenu ishoda integriranog studija", EXTENT,
                _items("F", [f"F{i}" for i in range(58, 66)], range(58, 66), [
                    "U kojoj mjeri je studij ispunio Vaša početna očekivanja?",
                    "U kojoj mjeri Vas je studij osposobio za rad u struci?",
@@ -487,7 +504,6 @@ def _grouped_chart(labels, m_pct, z_pct, width_cm=15.5):
         ax.text(zv + x_max * 0.01, yi + h / 2, fmt(zv, 1) + "%", va="center", fontsize=7, fontfamily=font, color="#404040")
     for t in ax.get_xticklabels():
         t.set_fontfamily(font)
-    ax.invert_yaxis()  # Prva kategorija gore, M iznad Ž
     leg = ax.legend(loc="center left", bbox_to_anchor=(1.0, 0.5), frameon=False, prop={"family": font, "size": 8})
     for txt in leg.get_texts():
         txt.set_color("#595959")
@@ -495,9 +511,8 @@ def _grouped_chart(labels, m_pct, z_pct, width_cm=15.5):
 
 
 def _pct_chart(labels, pcts, height_cm=None):
-    """Ukupni grafikon (vrijednosti s oznakom %), prva kategorija gore kao u tablici."""
-    return base._bar_chart(list(reversed(labels)), list(reversed(pcts)), width_cm=15.5, height_cm=height_cm,
-                           suffix="%")
+    """Ukupni grafikon (vrijednosti s oznakom %), prva kategorija dolje kao u Excel izvještajima."""
+    return base._bar_chart(labels, pcts, width_cm=15.5, height_cm=height_cm, suffix="%")
 
 
 # ==============================================================================
@@ -596,13 +611,13 @@ class _Builder:
         s = self.spec
         self.p("1. Uvod", "h1")
         for para in s["intro"]:
-            self.p(_esc(para))
+            self.p(_esc(para.format(year=self.year)))
         self.p("1.1. Cilj i sadržaj ankete", "h2")
         self.p(_esc(s["aim"] + " Rezultate je moguće obraditi na razini Sveučilišta, anketirane jedinice te, u "
-               "slučaju dovoljnog broja upitnika, na razini svake studijske grupe. Ova anketa omogućuje nastavnicima i "
-               f"voditeljima studijskih grupa analizu provedbe {s['level_gen']} studija iz perspektive studenata, "
+               "slučaju dovoljnog broja upitnika, na razini svake studijske grupe. Ova anketa omogućuje anketiranim "
+               f"jedinicama i voditeljima studijskih grupa analizu provedbe {s['level_gen']} studija iz perspektive studenata, "
                "analizu dobrih i loših strana studija u cjelini iz studentske perspektive te, u skladu s time, "
-               "planiranje mogućih mjera unapređenja kvalitete."))
+               "planiranje mogućih mjera unaprjeđenja kvalitete."))
         self.p(_esc(f"Anketni upitnik sastoji se od {len(s['sections'])} cjelina, a svaka cjelina odnosi se na jedan "
                     f"vidik {s['level_gen']} studija:"))
         for sec in s["sections"]:
@@ -618,21 +633,23 @@ class _Builder:
         nm, nz, nn = int((g == 1).sum()), int((g == 0).sum()), int(g.isna().sum())
         program = self.info.get("Studijski program", "")
         self.p("2. Rezultati ankete", "h1")
-        self.p("2.1. Struktura uzorka", "h2")
+        self.p("2.1. Struktura uzorka prema anketiranim jedinicama i studijima", "h2")
         self.p(_esc(f"Studij {program} ({s['level']} studij) obuhvaća {n} anketnih upitnika. Kriterij za ispis "
                     f"izvješća je minimalno {MIN_SURVEYS} ispunjenih anketnih upitnika."))
-        self.p(_esc(f"U tablici 1. prikazan je broj anketnih upitnika po spolu anketiranih studenata. U anketi je "
+        self.p(_esc(f"U tablici 1. prikazan je broj anketnih upitnika po anketiranoj jedinici i spolu anketiranih "
+                    f"studenata. U anketi je "
                     f"sudjelovalo {n} studenata: {np_text(nm, n)} muških, {np_text(nz, n)} ženskih, a za "
                     f"{np_text(nn, n)} spol nije označen."))
         self.no = 1
         cells = [Paragraph(_esc(program), self.st["cell_s"])]
         for c in (nm, nz, nn, n):
             cells += [str(c), fmt(c / n * 100, 1) + "%"]
-        data = [["Studij", "M", "", "Ž", "", "Nedostaje", "", "Ukupno", ""],
+        data = [[Paragraph(_esc(self.info.get("Fakultet", "") or "Studij"), self.st["cell_sb"]),
+                 "M", "", "Ž", "", "Nedostaje", "", "Ukupno", ""],
                 ["", "N", "%", "N", "%", "N", "%", "N", "%"], cells]
         spans = [((0, 0), (0, 1)), ((1, 0), (2, 0)), ((3, 0), (4, 0)), ((5, 0), (6, 0)), ((7, 0), (8, 0))]
         self.story.append(KeepTogether([
-            self.caption("Tablica 1. Broj anketiranih studenata po spolu"),
+            self.caption("Tablica 1. Broj anketiranih studenata po anketiranoj jedinici"),
             _grid_table(data, [4.2 * cm] + [1.25 * cm, 1.45 * cm] * 4, header_rows=2, spans=spans, bold_last=False),
             Spacer(1, 0.3 * cm)]))
 
@@ -672,11 +689,22 @@ class _Builder:
         self.story.append(PageBreak())
         self.p("2.3. Pregled po skupinama pitanja", "h2")
         self.p(_esc(METHOD_TEXT))
-        for k, grp in enumerate(self.spec["groups"], start=1):
+        k, sub, current_parent = 0, 0, None
+        for grp in self.spec["groups"]:
             self.no += 1
-            self.group(k, grp)
+            if grp["parent"]:
+                if grp["parent"] != current_parent:
+                    k, sub, current_parent = k + 1, 0, grp["parent"]
+                    self.p(f"2.3.{k}. {_esc(PARENTS[grp['parent']])} ({grp['parent']})", "h3")
+                sub += 1
+                number = f"2.3.{k}.{sub}."
+            else:
+                k, current_parent = k + 1, None
+                number = f"2.3.{k}."
+            self.group(number, grp)
+        self.single_number = f"2.3.{k + 1}."
 
-    def group(self, k, grp):
+    def group(self, number, grp):
         st, n, no = self.st, self.n, self.no
         scale = grp["scale"]
         words = SATISFACTION_TEXT if scale is SATISFACTION else EXTENT_TEXT
@@ -689,7 +717,7 @@ class _Builder:
         counts_all = [int(pooled.isna().sum())] + [int((pooled == v).sum()) for v, _ in scale]
         first, last = grp["items"][0][1], grp["items"][-1][1]
 
-        self.p(f"2.3.{k}. {_esc(grp['title'])} ({grp['code']})", "h3")
+        self.p(f"{number} {_esc(grp['title'])} ({grp['code']})", "h3")
         parts = [f"{np_text(c, total)} {w}" for c, w in zip(counts_all[1:], words)]
         self.p(_esc(
             f"Skup pitanja vezanih uz {grp['subject']} ({first} – {last}) prikazan je u tablicama {no}a. (opisna "
@@ -742,8 +770,7 @@ class _Builder:
 
     def single_items(self):
         s, n = self.spec, self.n
-        k = len(s["groups"]) + 1
-        self.p(f"2.3.{k}. Opća procjena ishoda (F) - pojedinačna pitanja", "h3")
+        self.p(f"{self.single_number} Opća procjena ishoda (F) - pojedinačna pitanja", "h3")
 
         for item in s["yes_no"]:
             self.no += 1
@@ -776,12 +803,13 @@ class _Builder:
         # Opća ocjena studija
         self.no += 1
         col, code, qtext = s["overall"]
-        clean = self.col(col, [v for v, _ in OVERALL])
-        rows = self.item_rows(clean, OVERALL)
+        labels = s.get("overall_labels", OVERALL)
+        clean = self.col(col, [v for v, _ in labels])
+        rows = self.item_rows(clean, labels)
         d = describe(clean)
         parts = [f"{np_text(int((clean == v).sum()), n)} ocjenom {v} ({lbl.split(' (')[0].lower()})"
-                 for v, lbl in OVERALL]
-        title = f"{code} {qtext}" if code != "F" else qtext
+                 for v, lbl in labels]
+        title = f"{code} {qtext}"
         text = (f"Od ukupnog broja anketiranih ({n}) svoj {s['level']} studij ocjenjuje {_join(parts)}. Prosječna "
                 f"opća ocjena kojom studenti ocjenjuju svoj {s['level']} studij iznosi {fmt(d['M'], 2)} "
                 f"(SD = {fmt(d['SD'], 2)}). Na pitanje nije odgovorilo {np_text(d['NN'], n)} studenata.")
