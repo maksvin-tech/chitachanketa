@@ -195,19 +195,28 @@ def dataframe_to_xlsx_bytes(df):
 # Spremanje i učitavanje serija
 # ------------------------------------------------------------------------------
 
-def new_batch_name(now=None):
+def _safe_name(text, max_len=60):
+    """Uklanja znakove koji smetaju u imenima datoteka (npr. kod preuzimanja na Windows)."""
+    cleaned = "".join("_" if c in '\\/:*?"<>|' else c for c in text)
+    return " ".join(cleaned.split())[:max_len].strip()
+
+
+def new_batch_name(label="", now=None):
     now = now or datetime.now()
     computer = os.environ.get("COMPUTERNAME") or socket.gethostname() or "racunalo"
-    return f"{now:%Y-%m-%d_%H-%M-%S}_{computer}"
+    name = f"{now:%Y-%m-%d_%H-%M-%S}_{computer}"
+    label = _safe_name(label)
+    return f"{name}_{label}" if label else name
 
 
-def save_batch(service, form_type, results_df, scans=None, previous=None):
+def save_batch(service, form_type, results_df, scans=None, previous=None, label=""):
     """Sprema seriju anketa u Drive.
 
     results_df : tablica rezultata (sa stupcem "Datoteka")
     scans      : lista (ime_datoteke, bajtovi) ili None ako se skenovi ne spremaju
     previous   : rezultat ranijeg save_batch za ISTU seriju -> samo se zamijeni Excel
                  (npr. nakon ručnih ispravaka), skenovi se ne šalju ponovno.
+    label      : upisani naziv (npr. studijski program) - dodaje se u ime serije
 
     Vraća rječnik s podacima o spremljenoj seriji.
     """
@@ -217,7 +226,7 @@ def save_batch(service, form_type, results_df, scans=None, previous=None):
         return {**previous, "results_link": f.get("webViewLink", previous.get("results_link")),
                 "rows": len(results_df), "updated": True}
 
-    batch = new_batch_name()
+    batch = new_batch_name(label)
     results_folder = _ensure_path(service, ROOT_FOLDER, RESULTS_FOLDER, form_type)
     xlsx = dataframe_to_xlsx_bytes(results_df)
     results_file = _upload(service, f"{batch}.xlsx", xlsx, XLSX_MIME, results_folder["id"])

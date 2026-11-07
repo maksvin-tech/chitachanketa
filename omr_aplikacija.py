@@ -17,6 +17,7 @@ CONFIG = {
     "Procjena nastavnika (V4)": {
         "pdf": "Anketa za procjenu nastavnika V4.pdf",
         "scan_mode": "A4_SINGLE",
+        "info_fields": ["Nastavnik", "Kolegij"],  # Upisuje se ručno (umjesto kodova s obrasca)
         "columns": [
             "Spol", "Prisutnost", "Interes kolegija", "Indeks", "Ocjena kolegija",
             "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10"
@@ -45,6 +46,7 @@ CONFIG = {
     "Preddiplomski studij": {
         "pdf": "Anketa preddiplomski.pdf",
         "scan_mode": "A3_TWO_IMAGES",  # 1. slika: desno str.1 | 2. slika: lijevo str.2, desno str.3
+        "info_fields": ["Studijski program"],
         "columns": [
             "Spol\n(muško = 1)\n(žensko = 0)", "Ocjena preddipl", "Vrsta studiranja",
             "Prvi izbor", "Nastavak studija",
@@ -86,6 +88,7 @@ CONFIG = {
     "Diplomski studij": {
         "pdf": "Anketa diplomski.pdf",
         "scan_mode": "A4_TWO_PAGES",  # ili A3_SINGLE
+        "info_fields": ["Studijski program"],
         "columns": [
             "Spol\n(muško = 1)\n(žensko = 0)", "Ocjena Dipl", "Ocjena Preddipl",
             "Prvi izbor", "Nastavak studija",
@@ -118,6 +121,7 @@ CONFIG = {
     "Integrirani studij": {
         "pdf": "Anketa integrirani.pdf",
         "scan_mode": "A3_TWO_IMAGES",
+        "info_fields": ["Studijski program"],
         "columns": [
             "Spol\n(muško = 1)\n(žensko = 0)", "Ocjena studij", "Prvi izbor",
             *[f"B{i}" for i in range(1, 16)],
@@ -399,8 +403,15 @@ if not os.path.exists(cfg["pdf"]):
 
 ref_images, pages_rows, scale = load_pdf_template(cfg["pdf"])
 
+# Naziv studijskog programa / nastavnika i kolegija upisuje se ručno (kodovi s obrasca se ne očitavaju)
+st.subheader("2. Podaci o anketiranju")
+info_values = {}
+for col, field in zip(st.columns(len(cfg["info_fields"])), cfg["info_fields"]):
+    info_values[field] = col.text_input(field, key=f"info|{form_type}|{field}").strip()
+missing_info = [field for field, value in info_values.items() if not value]
+
 uploaded_files = st.file_uploader(
-    "2. Učitajte skenirane JPEG slike (za A3 obrasce učitajte parove slika redom: naslovna pa unutarnja):",
+    "3. Učitajte skenirane JPEG slike (za A3 obrasce učitajte parove slika redom: naslovna pa unutarnja):",
     type=["jpg", "jpeg", "png"], accept_multiple_files=True
 )
 
@@ -440,10 +451,15 @@ if uploaded_files:
     st.subheader("📊 Očitani podaci (možete ih i ručno dopuniti prije izvoza)")
     edited_df = st.data_editor(df_out, num_rows="dynamic", use_container_width=True)
 
+    # Upisani nazivi dodaju se kao prvi stupci svake ankete u ovoj seriji
+    final_df = edited_df.copy()
+    for pos, (field, value) in enumerate(info_values.items()):
+        final_df.insert(pos, field, value)
+
     # Gumb za spremanje u Excel (.xlsx) - izrađuje se u memoriji, bez datoteke na disku
     st.download_button(
         "💾 Preuzmi gotovu Excel tablicu (.xlsx)",
-        data=drive.dataframe_to_xlsx_bytes(edited_df.drop(columns=["Datoteka"])),
+        data=drive.dataframe_to_xlsx_bytes(final_df.drop(columns=["Datoteka"])),
         file_name=f"{form_type}_rezultati.xlsx",
         mime=drive.XLSX_MIME
     )
@@ -457,14 +473,17 @@ if uploaded_files:
 
         save_scans = st.checkbox("Spremi i izvorne skenove", value=True, disabled=previous is not None)
         button_label = "☁️ Spremi izmjene u Google Drive" if previous else "☁️ Spremi u Google Drive"
-        if st.button(button_label, type="primary"):
+        if missing_info:
+            st.warning(f"Prije spremanja upišite: **{', '.join(missing_info)}** (gore, pod točkom 2).")
+        if st.button(button_label, type="primary", disabled=bool(missing_info)):
             try:
                 with st.spinner("Spremam u Google Drive..."):
                     scans = None
                     if save_scans and previous is None:
                         scans = [(f.name, f.getvalue()) for f in files_sorted]
                     saved_batches[batch_key] = drive.save_batch(
-                        drive_service, form_type, edited_df, scans, previous=previous
+                        drive_service, form_type, final_df, scans, previous=previous,
+                        label=" - ".join(info_values.values()),
                     )
                     st.session_state.drive_root_link = drive.root_folder_link(drive_service)
             except Exception as e:
