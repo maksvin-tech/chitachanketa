@@ -228,11 +228,21 @@ def align_to_reference(scan_bgr, ref_gray):
     aligned_bgr = cv2.warpPerspective(scan_bgr_resized, M, (tw, th), borderValue=(255, 255, 255))
     return aligned_bgr
 
-def evaluate_bubbles(aligned_pages, pages_rows, questions_spec, scale, fill_threshold=0.18):
-    """Mjeri zacrnjenost svakog kružića i vraća listu odgovora + vizualizaciju."""
-    debug_pages = [p.copy() for p in aligned_pages]
-    thresh_pages = []
+def bubble_radius(scale):
+    return int(4.2 * scale)
 
+
+def question_coords(pages_rows, page_idx, row_spec):
+    """Koordinate kružića jednog pitanja (vodoravni redak ili okomito složeni kružići)."""
+    if isinstance(row_spec, list):
+        return [pages_rows[page_idx][r][0] for r in row_spec]
+    return pages_rows[page_idx][row_spec]
+
+
+def measure_ratios(aligned_pages, pages_rows, questions_spec, scale):
+    """Mjeri zacrnjenost svakog kružića. Vraća listu (jedna lista omjera po pitanju).
+    Ovo je jedini skupi korak - rezultat je malen pa se može čuvati za stotine anketa."""
+    thresh_pages = []
     for p in aligned_pages:
         gray = cv2.cvtColor(p, cv2.COLOR_BGR2GRAY)
         # Adaptivni prag hvata i plavu i crnu kemijsku olovku
@@ -240,54 +250,99 @@ def evaluate_bubbles(aligned_pages, pages_rows, questions_spec, scale, fill_thre
                                    cv2.THRESH_BINARY_INV, 31, 10)
         thresh_pages.append(th)
 
-    radius = int(4.2 * scale)
-    answers = []
+    radius = bubble_radius(scale)
+    size = 2 * radius + 1
+    disk = np.zeros((size, size), dtype=np.uint8)
+    cv2.circle(disk, (radius, radius), radius, 255, -1)  # Ista maska kružića, samo jednom
 
-    for page_idx, row_spec, values in questions_spec:
-        if isinstance(row_spec, list):
-            coords = [pages_rows[page_idx][r][0] for r in row_spec]
-        else:
-            coords = pages_rows[page_idx][row_spec]
-
+    all_ratios = []
+    for page_idx, row_spec, _values in questions_spec:
+        th = thresh_pages[page_idx]
+        h, w = th.shape
         ratios = []
-        for (cx, cy) in coords:
+        for (cx, cy) in question_coords(pages_rows, page_idx, row_spec):
             ix, iy = int(round(cx)), int(round(cy))
-            mask = np.zeros(thresh_pages[page_idx].shape, dtype=np.uint8)
-            cv2.circle(mask, (ix, iy), radius, 255, -1)
-            dark_pixels = cv2.countNonZero(cv2.bitwise_and(thresh_pages[page_idx], thresh_pages[page_idx], mask=mask))
-            total_pixels = cv2.countNonZero(mask)
-            ratios.append(dark_pixels / float(total_pixels))
+            # Mjerimo samo mali isječak oko kružića umjesto cijele stranice
+            x0, y0 = max(ix - radius, 0), max(iy - radius, 0)
+            x1, y1 = min(ix + radius + 1, w), min(iy + radius + 1, h)
+            roi = th[y0:y1, x0:x1]
+            m = disk[y0 - (iy - radius):y1 - (iy - radius), x0 - (ix - radius):x1 - (ix - radius)]
+            total_pixels = cv2.countNonZero(m)
+            dark_pixels = cv2.countNonZero(cv2.bitwise_and(roi, roi, mask=m))
+            ratios.append(dark_pixels / float(total_pixels) if total_pixels else 0.0)
+        all_ratios.append(ratios)
+    return all_ratios
 
-        # Određivanje koji je kružić zacrnjen
-        max_r = max(ratios)
-        min_r = min(ratios)
-        # Kružić mora biti osjetno tamniji od praznih kružića u istom retku
-        marked_indices = [
-            i for i, r in enumerate(ratios)
-            if r > (min_r + 0.12) and r >= max(fill_threshold, max_r * 0.78)
-        ]
 
-        if len(marked_indices) == 1:
-            idx = marked_indices[0]
-            ans = values[idx]
-            color = (0, 200, 0)  # Zeleno = uredno očitan odgovor
-        else:
-            ans = 'x'
-            color = (0, 0, 230)  # Crveno = prazno ili dvostruko zacrnjeno ('x')
+def decide_marked(ratios, fill_threshold):
+    """Koji su kružići u retku zacrnjeni? (brzo - ponavlja se kod promjene osjetljivosti)"""
+    max_r = max(ratios)
+    min_r = min(ratios)
+    # Kružić mora biti osjetno tamniji od praznih kružića u istom retku
+    return [
+        i for i, r in enumerate(ratios)
+        if r > (min_r + 0.12) and r >= max(fill_threshold, max_r * 0.78)
+    ]
 
-        answers.append(ans)
 
-        # Crtanje kružića za vizualnu kontrolu
-        for i, (cx, cy) in enumerate(coords):
+def answers_from_ratios(all_ratios, questions_spec, fill_threshold):
+    """Pretvara izmjerene omjere u odgovore. 'x' = prazno ili dvostruko zacrnjeno."""
+    answers = []
+    for ratios, (_page, _rows, values) in zip(all_ratios, questions_spec):
+        marked = decide_marked(ratios, fill_threshold)
+        answers.append(values[marked[0]] if len(marked) == 1 else 'x')
+    return answers
+
+
+def draw_debug(aligned_pages, pages_rows, questions_spec, scale, all_ratios, fill_threshold):
+    """Crta prepoznate kružiće za vizualnu kontrolu (samo za anketu koja se pregledava)."""
+    debug_pages = [p.copy() for p in aligned_pages]
+    radius = bubble_radius(scale)
+    for ratios, (page_idx, row_spec, _values) in zip(all_ratios, questions_spec):
+        marked = decide_marked(ratios, fill_threshold)
+        for i, (cx, cy) in enumerate(question_coords(pages_rows, page_idx, row_spec)):
             ix, iy = int(round(cx)), int(round(cy))
-            if len(marked_indices) == 1 and i == marked_indices[0]:
-                cv2.circle(debug_pages[page_idx], (ix, iy), radius + 3, (0, 200, 0), 2)
-            elif i in marked_indices:
-                cv2.circle(debug_pages[page_idx], (ix, iy), radius + 3, (0, 140, 255), 2)
+            if len(marked) == 1 and i == marked[0]:
+                cv2.circle(debug_pages[page_idx], (ix, iy), radius + 3, (0, 200, 0), 2)    # Zeleno = očitano
+            elif i in marked:
+                cv2.circle(debug_pages[page_idx], (ix, iy), radius + 3, (0, 140, 255), 2)  # Narančasto = više oznaka
             else:
                 cv2.circle(debug_pages[page_idx], (ix, iy), radius, (200, 200, 200), 1)
+    return debug_pages
 
-    return answers, debug_pages
+
+def scan_units(scan_mode, files_sorted):
+    """Grupira učitane slike u ankete: lista (oznaka, [datoteke])."""
+    if scan_mode == "A4_SINGLE":
+        return [(f.name, [f]) for f in files_sorted]
+    if scan_mode == "A3_TWO_IMAGES":
+        return [(f"{a.name} + {b.name}", [a, b]) for a, b in zip(files_sorted[0::2], files_sorted[1::2])]
+    return None  # Način skeniranja još nije podržan
+
+
+def decode_image(f):
+    return cv2.imdecode(np.frombuffer(f.getvalue(), np.uint8), cv2.IMREAD_COLOR)
+
+
+def align_unit(scan_mode, unit_files, ref_images):
+    """Učitava slike jedne ankete i poravnava svaku stranicu prema PDF predlošku."""
+    if scan_mode == "A4_SINGLE":
+        return [align_to_reference(decode_image(unit_files[0]), ref_images[0])]
+    # A3_TWO_IMAGES: 1. slika (desna polovica = Str. 1), 2. slika (lijevo = Str. 2, desno = Str. 3)
+    img1, img2 = decode_image(unit_files[0]), decode_image(unit_files[1])
+    w1, w2 = img1.shape[1], img2.shape[1]
+    return [
+        align_to_reference(img1[:, w1 // 2:], ref_images[0]),
+        align_to_reference(img2[:, :w2 // 2], ref_images[1]),
+        align_to_reference(img2[:, w2 // 2:], ref_images[2]),
+    ]
+
+
+def shrink_for_preview(img_bgr, max_width=1200):
+    h, w = img_bgr.shape[:2]
+    if w > max_width:
+        img_bgr = cv2.resize(img_bgr, (max_width, int(h * max_width / w)), interpolation=cv2.INTER_AREA)
+    return cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
 
 # ==============================================================================
 # 4. KORISNIČKO SUČELJE (STREAMLIT WEB/DESKTOP APLIKACIJA)
@@ -351,38 +406,34 @@ uploaded_files = st.file_uploader(
 
 if uploaded_files:
     files_sorted = sorted(uploaded_files, key=lambda f: f.name)
-    all_rows = []
-    previews = []
+    units = scan_units(cfg["scan_mode"], files_sorted)
+    if units is None:
+        st.error(f"Način skeniranja **{cfg['scan_mode']}** za ovaj obrazac još nije podržan.")
+        units = []
 
-    if cfg["scan_mode"] == "A4_SINGLE":
-        for f in files_sorted:
-            img = cv2.imdecode(np.frombuffer(f.read(), np.uint8), cv2.IMREAD_COLOR)
-            aligned = align_to_reference(img, ref_images[0])
-            ans, dbg = evaluate_bubbles([aligned], pages_rows, cfg["questions"], scale, sensitivity)
-            all_rows.append([f.name] + ans)
-            previews.append((f.name, dbg))
+    # Skupi korak (poravnanje + mjerenje kružića) radi se samo JEDNOM po učitanim datotekama.
+    # Ispravci u tablici, pregled i promjena osjetljivosti koriste spremljena mjerenja,
+    # a slike se ne čuvaju u memoriji.
+    proc_key = (form_type, tuple(getattr(f, "file_id", None) or f"{f.name}:{f.size}" for f in files_sorted))
+    cache = st.session_state.get("omr_cache")
+    if cache is None or cache["key"] != proc_key:
+        measurements = []
+        if units:
+            progress = st.progress(0.0, text="Očitavam ankete...")
+            for i, (_label, unit_files) in enumerate(units, start=1):
+                pages = align_unit(cfg["scan_mode"], unit_files, ref_images)
+                measurements.append(measure_ratios(pages, pages_rows, cfg["questions"], scale))
+                progress.progress(i / len(units), text=f"Očitavam ankete... {i}/{len(units)}")
+            progress.empty()
+        cache = {"key": proc_key, "measurements": measurements}
+        st.session_state.omr_cache = cache
+        st.session_state.pop("omr_preview", None)
+    measurements = cache["measurements"]
 
-    elif cfg["scan_mode"] == "A3_TWO_IMAGES":
-        # Spajanje po 2 slike: 1. slika (desna polovica = Str. 1), 2. slika (lijevo = Str. 2, desno = Str. 3)
-        for i in range(0, len(files_sorted) - 1, 2):
-            f_front, f_inner = files_sorted[i], files_sorted[i + 1]
-            img1 = cv2.imdecode(np.frombuffer(f_front.read(), np.uint8), cv2.IMREAD_COLOR)
-            img2 = cv2.imdecode(np.frombuffer(f_inner.read(), np.uint8), cv2.IMREAD_COLOR)
-
-            h1, w1, _ = img1.shape
-            h2, w2, _ = img2.shape
-            page1_raw = img1[:, w1 // 2:]       # Desna polovica 1. slike = Naslovnica
-            page2_raw = img2[:, :w2 // 2]       # Lijeva polovica 2. slike = Stranica 2
-            page3_raw = img2[:, w2 // 2:]       # Desna polovica 2. slike = Stranica 3
-
-            p1 = align_to_reference(page1_raw, ref_images[0])
-            p2 = align_to_reference(page2_raw, ref_images[1])
-            p3 = align_to_reference(page3_raw, ref_images[2])
-
-            ans, dbg = evaluate_bubbles([p1, p2, p3], pages_rows, cfg["questions"], scale, sensitivity)
-            label = f"{f_front.name} + {f_inner.name}"
-            all_rows.append([label] + ans)
-            previews.append((label, dbg))
+    all_rows = [
+        [label] + answers_from_ratios(m, cfg["questions"], sensitivity)
+        for (label, _files), m in zip(units, measurements)
+    ]
 
     # Prikaz tablice i preuzimanje u Excelu
     df_out = pd.DataFrame(all_rows, columns=["Datoteka"] + cfg["columns"])
@@ -398,7 +449,7 @@ if uploaded_files:
     )
 
     # Spremanje serije u Google Drive
-    if drive_service is not None:
+    if drive_service is not None and all_rows:
         st.subheader("☁️ Spremanje u Google Drive")
         batch_key = form_type + "|" + "|".join(f"{f.name}:{f.size}" for f in files_sorted)
         saved_batches = st.session_state.setdefault("saved_batches", {})
@@ -434,14 +485,21 @@ if uploaded_files:
             if links:
                 st.markdown(" · ".join(links))
 
-    # Vizualna provjera zelenih kružića
-    st.subheader("🔍 Vizualna provjera prepoznatih kružića")
-    selected = st.selectbox("Odaberite anketu za pregled:", [p[0] for p in previews])
-    for name, dbg_imgs in previews:
-        if name == selected:
-            cols = st.columns(len(dbg_imgs))
-            for idx, d_img in enumerate(dbg_imgs):
-                cols[idx].image(cv2.cvtColor(d_img, cv2.COLOR_BGR2RGB), caption=f"Stranica {idx+1}", use_container_width=True)
+    # Vizualna provjera zelenih kružića - crta se samo odabrana anketa
+    if units:
+        st.subheader("🔍 Vizualna provjera prepoznatih kružića")
+        sel = st.selectbox("Odaberite anketu za pregled:", range(len(units)), format_func=lambda i: units[i][0])
+        preview_key = (proc_key, sel, sensitivity)
+        preview = st.session_state.get("omr_preview")
+        if preview is None or preview["key"] != preview_key:
+            with st.spinner("Pripremam pregled..."):
+                pages = align_unit(cfg["scan_mode"], units[sel][1], ref_images)
+                dbg = draw_debug(pages, pages_rows, cfg["questions"], scale, measurements[sel], sensitivity)
+                preview = {"key": preview_key, "images": [shrink_for_preview(d) for d in dbg]}
+            st.session_state.omr_preview = preview
+        cols = st.columns(len(preview["images"]))
+        for idx, img in enumerate(preview["images"]):
+            cols[idx].image(img, caption=f"Stranica {idx+1}", use_container_width=True)
 
 # ==============================================================================
 # 5. SVI SPREMLJENI REZULTATI IZ GOOGLE DRIVEA (osnova za izvještaje)
