@@ -1,3 +1,4 @@
+import io
 import os
 import cv2
 import numpy as np
@@ -8,6 +9,7 @@ from pdfminer.high_level import extract_pages
 from pdfminer.layout import LTTextContainer, LTChar
 
 import drive_storage as drive
+import reports
 
 # ==============================================================================
 # 1. DEFINICIJA STUPACA I PRAVILA KODIRANJA (IDENTIČNO VAŠIM EXCEL TABLICAMA)
@@ -17,7 +19,15 @@ CONFIG = {
     "Procjena nastavnika (V4)": {
         "pdf": "Anketa za procjenu nastavnika V4.pdf",
         "scan_mode": "A4_SINGLE",
-        "info_fields": ["Nastavnik", "Kolegij"],  # Upisuje se ručno (umjesto kodova s obrasca)
+        # Podaci koji se upisuju ručno (umjesto kodova s obrasca) - idu na naslovnicu izvještaja
+        "info_fields": [
+            {"name": "Fakultet"},
+            {"name": "Kolegij"},
+            {"name": "Nastavnik"},
+            {"name": "Nositelj predmeta", "choices": ["ne", "da"]},
+            {"name": "Identifikacijski ključ", "optional": True},
+        ],
+        "batch_label": ["Nastavnik", "Kolegij"],  # Dodaje se u ime serije u Google Driveu
         "columns": [
             "Spol", "Prisutnost", "Interes kolegija", "Indeks", "Ocjena kolegija",
             "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10"
@@ -46,7 +56,8 @@ CONFIG = {
     "Preddiplomski studij": {
         "pdf": "Anketa preddiplomski.pdf",
         "scan_mode": "A3_TWO_IMAGES",  # 1. slika: desno str.1 | 2. slika: lijevo str.2, desno str.3
-        "info_fields": ["Studijski program"],
+        "info_fields": [{"name": "Fakultet"}, {"name": "Studijski program"}],
+        "batch_label": ["Studijski program"],
         "columns": [
             "Spol\n(muško = 1)\n(žensko = 0)", "Ocjena preddipl", "Vrsta studiranja",
             "Prvi izbor", "Nastavak studija",
@@ -88,7 +99,8 @@ CONFIG = {
     "Diplomski studij": {
         "pdf": "Anketa diplomski.pdf",
         "scan_mode": "A4_TWO_PAGES",  # ili A3_SINGLE
-        "info_fields": ["Studijski program"],
+        "info_fields": [{"name": "Fakultet"}, {"name": "Studijski program"}],
+        "batch_label": ["Studijski program"],
         "columns": [
             "Spol\n(muško = 1)\n(žensko = 0)", "Ocjena Dipl", "Ocjena Preddipl",
             "Prvi izbor", "Nastavak studija",
@@ -121,7 +133,8 @@ CONFIG = {
     "Integrirani studij": {
         "pdf": "Anketa integrirani.pdf",
         "scan_mode": "A3_TWO_IMAGES",
-        "info_fields": ["Studijski program"],
+        "info_fields": [{"name": "Fakultet"}, {"name": "Studijski program"}],
+        "batch_label": ["Studijski program"],
         "columns": [
             "Spol\n(muško = 1)\n(žensko = 0)", "Ocjena studij", "Prvi izbor",
             *[f"B{i}" for i in range(1, 16)],
@@ -396,6 +409,19 @@ else:
                 st.session_state.pop(k, None)
             st.rerun()
 
+# --- Postavke PDF izvještaja (vrijede za sve izvještaje u ovom krugu anketiranja) ---
+if reports.has_report(form_type):
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("📄 Postavke izvještaja")
+    _semesters = ["zimski", "ljetni"]
+    report_semester = st.sidebar.selectbox(
+        "Semestar", _semesters, index=_semesters.index(reports.default_semester()), key="report_semester"
+    )
+    report_year = st.sidebar.text_input(
+        "Akademska godina", value=reports.default_academic_year(), key="report_year"
+    ).strip()
+    report_date = st.sidebar.date_input("Datum izvještaja", format="DD.MM.YYYY", key="report_date")
+
 cfg = CONFIG[form_type]
 if not os.path.exists(cfg["pdf"]):
     st.error(f"U mapi programa nedostaje izvorna PDF datoteka: **{cfg['pdf']}**")
@@ -406,9 +432,16 @@ ref_images, pages_rows, scale = load_pdf_template(cfg["pdf"])
 # Naziv studijskog programa / nastavnika i kolegija upisuje se ručno (kodovi s obrasca se ne očitavaju)
 st.subheader("2. Podaci o anketiranju")
 info_values = {}
-for col, field in zip(st.columns(len(cfg["info_fields"])), cfg["info_fields"]):
-    info_values[field] = col.text_input(field, key=f"info|{form_type}|{field}").strip()
-missing_info = [field for field, value in info_values.items() if not value]
+info_fields = cfg["info_fields"]
+for start in range(0, len(info_fields), 3):
+    for col, field in zip(st.columns(3), info_fields[start:start + 3]):
+        key = f"info|{form_type}|{field['name']}"
+        label = field["name"] + (" (neobavezno)" if field.get("optional") else "")
+        if field.get("choices"):
+            info_values[field["name"]] = col.selectbox(label, field["choices"], key=key)
+        else:
+            info_values[field["name"]] = col.text_input(label, key=key).strip()
+missing_info = [f["name"] for f in info_fields if not f.get("optional") and not info_values[f["name"]]]
 
 uploaded_files = st.file_uploader(
     "3. Učitajte skenirane JPEG slike (za A3 obrasce učitajte parove slika redom: naslovna pa unutarnja):",
@@ -464,6 +497,29 @@ if uploaded_files:
         mime=drive.XLSX_MIME
     )
 
+    # PDF izvještaj za ovu seriju
+    if reports.has_report(form_type) and all_rows:
+        report_key = (form_type, final_df.to_csv(index=False), report_semester, report_year, str(report_date))
+        stored = st.session_state.get("batch_report")
+        if missing_info:
+            st.caption(f"Za PDF izvještaj upišite: {', '.join(missing_info)}.")
+        if st.button("📄 Izradi PDF izvještaj", disabled=bool(missing_info) or not report_year):
+            try:
+                with st.spinner("Izrađujem izvještaj..."):
+                    pdf, report_warnings = reports.build_report(
+                        form_type, final_df, info_values, report_semester, report_year, report_date
+                    )
+                stored = {"key": report_key, "pdf": pdf, "warnings": report_warnings,
+                          "name": reports.report_file_name(form_type, info_values)}
+                st.session_state.batch_report = stored
+            except Exception as e:
+                st.error(f"Izrada izvještaja nije uspjela: {e}")
+        if stored and stored["key"] == report_key:
+            for w in stored["warnings"]:
+                st.warning(w)
+            st.download_button("⬇️ Preuzmi PDF izvještaj", data=stored["pdf"], file_name=stored["name"],
+                               mime="application/pdf")
+
     # Spremanje serije u Google Drive
     if drive_service is not None and all_rows:
         st.subheader("☁️ Spremanje u Google Drive")
@@ -483,7 +539,7 @@ if uploaded_files:
                         scans = [(f.name, f.getvalue()) for f in files_sorted]
                     saved_batches[batch_key] = drive.save_batch(
                         drive_service, form_type, final_df, scans, previous=previous,
-                        label=" - ".join(info_values.values()),
+                        label=" - ".join(info_values[k] for k in cfg.get("batch_label", []) if info_values.get(k)),
                     )
                     st.session_state.drive_root_link = drive.root_folder_link(drive_service)
             except Exception as e:
@@ -555,3 +611,65 @@ if drive_service is not None:
                 file_name=f"{form_type}_svi_rezultati.xlsx",
                 mime=drive.XLSX_MIME,
             )
+
+            # --- Svi PDF izvještaji odjednom (jedan izvještaj = jedan nastavnik na jednom kolegiju) ---
+            if reports.has_report(form_type):
+                st.markdown("#### 📄 PDF izvještaji")
+                groups, incomplete = reports.group_surveys(form_type, df_all)
+                if incomplete:
+                    st.warning(f"{incomplete} anketa nema upisane sve podatke (fakultet, kolegij, nastavnik, "
+                               "nositelj) pa ne ulaze u izvještaje.")
+                faculties = sorted({g_info["Fakultet"] for g_info, _ in groups})
+                if not groups:
+                    st.info("Nema anketa s upisanim podacima za izvještaje.")
+                else:
+                    chosen = st.selectbox("Fakultet", ["Svi fakulteti"] + faculties, key="bulk_faculty")
+                    selected = [g for g in groups if chosen == "Svi fakulteti" or g[0]["Fakultet"] == chosen]
+                    st.caption(f"Bit će izrađeno **{len(selected)}** izvještaja "
+                               f"({sum(len(d) for _, d in selected)} anketa).")
+                    to_drive = st.checkbox("Spremi izvještaje i u Google Drive (mapa *Izvještaji*, po fakultetima)",
+                                           value=True, key="bulk_to_drive")
+                    if st.button("📄 Izradi izvještaje", type="primary", disabled=not report_year):
+                        import zipfile
+                        zip_buf = io.BytesIO()
+                        problems, used_names, drive_folders = [], set(), {}
+                        progress = st.progress(0.0, text="Izrađujem izvještaje...")
+                        with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
+                            for k, (g_info, g_df) in enumerate(selected, start=1):
+                                name = reports.report_file_name(form_type, g_info)
+                                folder = reports.safe_file_part(g_info["Fakultet"])
+                                base, n_dup = name[:-4], 2
+                                while f"{folder}/{name}" in used_names:  # Isti naziv u istom fakultetu
+                                    extra = g_info.get("Identifikacijski ključ") or str(n_dup)
+                                    name, n_dup = f"{base} ({extra}).pdf", n_dup + 1
+                                used_names.add(f"{folder}/{name}")
+                                try:
+                                    pdf, w = reports.build_report(form_type, g_df, g_info, report_semester,
+                                                                  report_year, report_date)
+                                    zf.writestr(f"{folder}/{name}", pdf)
+                                    problems += [f"{name}: {x}" for x in w]
+                                    if to_drive:
+                                        _, folder_link = drive.save_report(drive_service, form_type, folder, name, pdf)
+                                        drive_folders[folder] = folder_link
+                                except Exception as e:
+                                    problems.append(f"{name}: izvještaj nije izrađen ({e})")
+                                progress.progress(k / len(selected), text=f"Izrađujem izvještaje... {k}/{len(selected)}")
+                        progress.empty()
+                        st.session_state.bulk_reports = {
+                            "form": form_type, "zip": zip_buf.getvalue(), "count": len(selected),
+                            "problems": problems, "folders": drive_folders,
+                            "name": f"Izvjestaji_{reports.safe_file_part(chosen)}.zip",
+                        }
+
+                    done = st.session_state.get("bulk_reports")
+                    if done and done["form"] == form_type:
+                        st.success(f"✅ Izrađeno {done['count']} izvještaja.")
+                        if done["folders"]:
+                            st.markdown("Spremljeno u Google Drive: " + " · ".join(
+                                f"[{f}]({link})" for f, link in sorted(done["folders"].items()) if link))
+                        if done["problems"]:
+                            with st.expander(f"⚠️ Napomene ({len(done['problems'])})"):
+                                for msg in done["problems"]:
+                                    st.write("- " + msg)
+                        st.download_button("⬇️ Preuzmi sve izvještaje (.zip)", data=done["zip"],
+                                           file_name=done["name"], mime="application/zip")

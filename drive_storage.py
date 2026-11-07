@@ -281,6 +281,25 @@ def load_all_results(service, form_type):
     return pd.concat(frames, ignore_index=True)
 
 
+REPORTS_FOLDER = "Izvještaji"
+
+
+def save_report(service, form_type, folder_name, file_name, data):
+    """Sprema PDF u OMR Ankete/Izvještaji/<obrazac>/<folder_name>/.
+    Ako izvještaj istog imena već postoji, zamjenjuje mu sadržaj (bez duplikata).
+    Vraća (poveznica na datoteku, poveznica na mapu)."""
+    folder = _ensure_path(service, ROOT_FOLDER, REPORTS_FOLDER, form_type, folder_name)
+    existing = _list(
+        service,
+        f"name = '{_q(file_name)}' and '{folder['id']}' in parents and mimeType != '{FOLDER_MIME}' and trashed = false",
+    )
+    if existing:
+        f = _replace_content(service, existing[0]["id"], data, "application/pdf")
+    else:
+        f = _upload(service, file_name, data, "application/pdf", folder["id"])
+    return f.get("webViewLink"), folder.get("webViewLink")
+
+
 def root_folder_link(service):
     root = _find_folder(service, ROOT_FOLDER)
     return root.get("webViewLink") if root else None
