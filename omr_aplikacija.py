@@ -7,6 +7,8 @@ import fitz  # PyMuPDF
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import LTTextContainer, LTChar
 
+import drive_storage as drive
+
 # ==============================================================================
 # 1. DEFINICIJA STUPACA I PRAVILA KODIRANJA (IDENTIČNO VAŠIM EXCEL TABLICAMA)
 # ==============================================================================
@@ -297,6 +299,44 @@ st.title("📋 OMR Čitač Anketa – Sveučilište u Zagrebu")
 form_type = st.sidebar.selectbox("1. Odaberite vrstu obrasca:", list(CONFIG.keys()))
 sensitivity = st.sidebar.slider("Osjetljivost na kemijsku olovku:", 0.10, 0.35, 0.18, 0.01)
 
+# --- Google Drive (spremanje u oblak) ---
+st.sidebar.markdown("---")
+st.sidebar.subheader("☁️ Google Drive")
+drive_service = None
+if not drive.libraries_installed():
+    st.sidebar.warning("Google biblioteke nisu instalirane. Pokrenite: `pip install -r requirements.txt`")
+elif not os.path.exists(drive.CREDENTIALS_FILE):
+    st.sidebar.info("Google Drive još nije podešen. Upute su u datoteci **PODESAVANJE_GOOGLE_DRIVE.md**.")
+else:
+    try:
+        drive_service = drive.get_service(interactive=False)  # Tiha prijava ako je već spremljena
+    except Exception as e:
+        st.sidebar.error(f"Greška pri spajanju na Google Drive: {e}")
+
+    if drive_service is None:
+        st.sidebar.caption("Prva prijava otvara preglednik u kojem odobrite pristup.")
+        if st.sidebar.button("🔑 Prijavi se u Google Drive"):
+            logged_in = False
+            try:
+                drive.get_service(interactive=True)
+                logged_in = True
+            except Exception as e:
+                st.sidebar.error(f"Prijava nije uspjela: {e}")
+            if logged_in:
+                st.rerun()
+    else:
+        if "drive_email" not in st.session_state:
+            st.session_state.drive_email = drive.account_email(drive_service)
+            st.session_state.drive_root_link = drive.root_folder_link(drive_service)
+        st.sidebar.success(f"Povezano: {st.session_state.drive_email or 'Google račun'}")
+        if st.session_state.drive_root_link:
+            st.sidebar.markdown(f"[📂 Otvori mapu *{drive.ROOT_FOLDER}*]({st.session_state.drive_root_link})")
+        if st.sidebar.button("Odjava s Google Drivea"):
+            drive.logout()
+            for k in ("drive_email", "drive_root_link"):
+                st.session_state.pop(k, None)
+            st.rerun()
+
 cfg = CONFIG[form_type]
 if not os.path.exists(cfg["pdf"]):
     st.error(f"U mapi programa nedostaje izvorna PDF datoteka: **{cfg['pdf']}**")
@@ -349,16 +389,50 @@ if uploaded_files:
     st.subheader("📊 Očitani podaci (možete ih i ručno dopuniti prije izvoza)")
     edited_df = st.data_editor(df_out, num_rows="dynamic", use_container_width=True)
 
-    # Gumb za spremanje u Excel (.xlsx)
-    excel_file = "rezultati_anketa.xlsx"
-    edited_df.drop(columns=["Datoteka"]).to_excel(excel_file, index=False)
-    with open(excel_file, "rb") as f_xlsx:
-        st.download_button(
-            "💾 Preuzmi gotovu Excel tablicu (.xlsx)",
-            data=f_xlsx,
-            file_name=f"{form_type}_rezultati.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+    # Gumb za spremanje u Excel (.xlsx) - izrađuje se u memoriji, bez datoteke na disku
+    st.download_button(
+        "💾 Preuzmi gotovu Excel tablicu (.xlsx)",
+        data=drive.dataframe_to_xlsx_bytes(edited_df.drop(columns=["Datoteka"])),
+        file_name=f"{form_type}_rezultati.xlsx",
+        mime=drive.XLSX_MIME
+    )
+
+    # Spremanje serije u Google Drive
+    if drive_service is not None:
+        st.subheader("☁️ Spremanje u Google Drive")
+        batch_key = form_type + "|" + "|".join(f"{f.name}:{f.size}" for f in files_sorted)
+        saved_batches = st.session_state.setdefault("saved_batches", {})
+        previous = saved_batches.get(batch_key)
+
+        save_scans = st.checkbox("Spremi i izvorne skenove", value=True, disabled=previous is not None)
+        button_label = "☁️ Spremi izmjene u Google Drive" if previous else "☁️ Spremi u Google Drive"
+        if st.button(button_label, type="primary"):
+            try:
+                with st.spinner("Spremam u Google Drive..."):
+                    scans = None
+                    if save_scans and previous is None:
+                        scans = [(f.name, f.getvalue()) for f in files_sorted]
+                    saved_batches[batch_key] = drive.save_batch(
+                        drive_service, form_type, edited_df, scans, previous=previous
+                    )
+                    st.session_state.drive_root_link = drive.root_folder_link(drive_service)
+            except Exception as e:
+                st.error(f"Spremanje nije uspjelo: {e}")
+
+        info = saved_batches.get(batch_key)
+        if info:
+            msg = f"✅ Spremljeno kao serija **{info['batch']}** ({info['rows']} anketa"
+            msg += f", {info['scans_saved']} skenova)." if info["scans_saved"] else ")."
+            if info.get("updated"):
+                msg += " Izmjene su zamijenile raniji Excel ove serije."
+            st.success(msg)
+            links = []
+            if info.get("results_link"):
+                links.append(f"[Excel rezultati]({info['results_link']})")
+            if info.get("scans_link"):
+                links.append(f"[Mapa sa skenovima]({info['scans_link']})")
+            if links:
+                st.markdown(" · ".join(links))
 
     # Vizualna provjera zelenih kružića
     st.subheader("🔍 Vizualna provjera prepoznatih kružića")
@@ -368,3 +442,39 @@ if uploaded_files:
             cols = st.columns(len(dbg_imgs))
             for idx, d_img in enumerate(dbg_imgs):
                 cols[idx].image(cv2.cvtColor(d_img, cv2.COLOR_BGR2RGB), caption=f"Stranica {idx+1}", use_container_width=True)
+
+# ==============================================================================
+# 5. SVI SPREMLJENI REZULTATI IZ GOOGLE DRIVEA (osnova za izvještaje)
+# ==============================================================================
+
+if drive_service is not None:
+    st.markdown("---")
+    st.subheader("📚 Svi spremljeni rezultati iz Google Drivea")
+    if st.button(f"Učitaj sve spremljene ankete: {form_type}"):
+        try:
+            with st.spinner("Učitavam iz Google Drivea..."):
+                st.session_state.all_results = (form_type, drive.load_all_results(drive_service, form_type))
+        except Exception as e:
+            st.error(f"Učitavanje nije uspjelo: {e}")
+
+    loaded = st.session_state.get("all_results")
+    if loaded and loaded[0] == form_type:
+        df_all = loaded[1]
+        if df_all.empty:
+            st.info("Za ovaj obrazac još nema spremljenih anketa.")
+        else:
+            st.write(f"Ukupno **{len(df_all)}** anketa iz **{df_all['Serija'].nunique()}** serija.")
+            if "Datoteka" in df_all.columns:
+                dupes = df_all[df_all["Datoteka"].duplicated(keep=False)]
+                if not dupes.empty:
+                    st.warning(
+                        f"Pazite: {dupes['Datoteka'].nunique()} skenova pojavljuje se u više serija "
+                        "(možda su spremljeni dvaput). Provjerite stupce *Serija* i *Datoteka*."
+                    )
+            st.dataframe(df_all, use_container_width=True)
+            st.download_button(
+                "💾 Preuzmi sve rezultate (.xlsx)",
+                data=drive.dataframe_to_xlsx_bytes(df_all),
+                file_name=f"{form_type}_svi_rezultati.xlsx",
+                mime=drive.XLSX_MIME,
+            )

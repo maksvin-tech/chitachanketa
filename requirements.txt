@@ -1,0 +1,10 @@
+streamlit
+opencv-python
+numpy
+pandas
+openpyxl
+PyMuPDF
+pdfminer.six
+google-api-python-client>=2.0
+google-auth
+google-auth-oauthlib

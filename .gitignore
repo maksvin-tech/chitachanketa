@@ -1,0 +1,10 @@
+# Google prijava - NIKADA ne stavljati na GitHub (repozitorij je javan!)
+google_credentials.json
+google_token.json
+client_secret*.json
+
+# Privremene i izlazne datoteke
+rezultati_anketa.xlsx
+__pycache__/
+*.pyc
+.streamlit/secrets.toml
