@@ -425,6 +425,12 @@ def clean_answer(value, allowed):
         return text
 
 
+def answer_pattern(allowed):
+    """Regex za tablicu: dopuštene vrijednosti (3.5 ili 3,5), x/X ili prazno."""
+    parts = sorted({re.escape(a).replace(r"\.", "[.,]") for a in allowed if a != MISSING}, key=len, reverse=True)
+    return r"^(?:" + "|".join(parts + ["[xX]", ""]) + r")$"
+
+
 def typed_answer(text):
     """Natrag u broj za Excel i izvještaje ('x' ostaje 'x')."""
     try:
@@ -716,10 +722,13 @@ if uploaded_files:
 
     column_config = {"Datoteka": st.column_config.TextColumn("Datoteka", disabled=True)}
     for name, _page, allowed in ans_cols:
-        label = short_question(name)
-        column_config[name] = (st.column_config.SelectboxColumn(label, options=allowed) if allowed
-                               else st.column_config.TextColumn(label, max_chars=4))
-    st.data_editor(table_df.reset_index(drop=True), num_rows="dynamic", use_container_width=True,
+        # Svi stupci kao tekst (kao stupac koda) - tablica prihvaća samo dopuštene odgovore
+        column_config[name] = st.column_config.TextColumn(
+            short_question(name), max_chars=4,
+            validate=answer_pattern(allowed) if allowed else r"^\d{0,4}$",
+            help=("Dopušteno: " + ", ".join(allowed)) if allowed else "Kod studija (4 znamenke)",
+        )
+    st.data_editor(table_df.reset_index(drop=True).astype(object), num_rows="dynamic", use_container_width=True,
                    column_config=column_config, key=table_key, on_change=on_table_edit)
 
     if len(many_missing):
