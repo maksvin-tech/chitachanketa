@@ -23,8 +23,13 @@ from datetime import datetime
 import pandas as pd
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-CREDENTIALS_FILE = os.path.join(APP_DIR, "google_credentials.json")
-TOKEN_FILE = os.path.join(APP_DIR, "google_token.json")
+# Na poslužitelju (Oracle) ključ i prijava stoje u zasebnoj mapi podataka, ne uz program
+DATA_DIR = os.environ.get("OMR_DATA_DIR") or APP_DIR
+CREDENTIALS_FILE = os.path.join(DATA_DIR, "google_credentials.json")
+TOKEN_FILE = os.path.join(DATA_DIR, "google_token.json")
+# Poslužitelj nema preglednik: prijava se radi kopiranjem adrese (vidi start_web_login)
+SERVER_MODE = os.environ.get("OMR_SERVER") == "1"
+WEB_LOGIN_REDIRECT = "http://localhost:8765/"
 
 SCOPES = ["https://www.googleapis.com/auth/drive.file"]
 ROOT_FOLDER = "OMR Ankete"
@@ -100,6 +105,61 @@ def get_service(interactive=True):
     with open(TOKEN_FILE, "w", encoding="utf-8") as f:
         f.write(creds.to_json())
 
+    return build("drive", "v3", credentials=creds, cache_discovery=False)
+
+
+def save_credentials(data):
+    """Sprema preuzeti google_credentials.json (iz aplikacije). Vraća poruku o grešci ili None."""
+    import json
+    try:
+        info = json.loads(data.decode("utf-8") if isinstance(data, bytes) else data)
+        client = info["installed"]
+        if not client.get("client_id") or not client.get("client_secret"):
+            raise KeyError
+    except (ValueError, KeyError, TypeError, AttributeError):
+        return "To nije ključ za program (očekuje se JSON s Google Cloud konzole, vrsta klijenta *Desktop app*)."
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(CREDENTIALS_FILE, "w", encoding="utf-8") as f:
+        json.dump(info, f)
+    try:
+        os.chmod(CREDENTIALS_FILE, 0o600)
+    except OSError:
+        pass
+    return None
+
+
+def start_web_login():
+    """Prijava bez preglednika na istom računalu (poslužitelj): vraća (adresa za prijavu, flow)."""
+    from google_auth_oauthlib.flow import Flow
+    flow = Flow.from_client_secrets_file(
+        CREDENTIALS_FILE, scopes=SCOPES, redirect_uri=WEB_LOGIN_REDIRECT, autogenerate_code_verifier=True
+    )
+    url, _state = flow.authorization_url(access_type="offline", prompt="consent")
+    return url, flow
+
+
+def finish_web_login(flow, pasted):
+    """Nakon odobrenja preglednik ode na nepostojeću stranicu localhost:8765/?code=... -
+    korisnik zalijepi tu adresu (ili samo kod), a ovdje se zamijeni za prijavu."""
+    from urllib.parse import parse_qs, urlparse
+    from googleapiclient.discovery import build
+
+    text = (pasted or "").strip()
+    query = parse_qs(urlparse(text).query) if "code=" in text else {}
+    if query.get("error"):
+        raise ValueError("Google je odbio prijavu: " + query["error"][0])
+    code = query["code"][0] if query.get("code") else text
+    if not code:
+        raise ValueError("Zalijepite adresu iz preglednika.")
+    flow.fetch_token(code=code)
+    creds = flow.credentials
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(TOKEN_FILE, "w", encoding="utf-8") as f:
+        f.write(creds.to_json())
+    try:
+        os.chmod(TOKEN_FILE, 0o600)
+    except OSError:
+        pass
     return build("drive", "v3", credentials=creds, cache_discovery=False)
 
 

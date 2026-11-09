@@ -467,14 +467,55 @@ drive_service = None
 if not drive.libraries_installed():
     st.sidebar.warning("Google biblioteke nisu instalirane. Pokrenite: `pip install -r requirements.txt`")
 elif not os.path.exists(drive.CREDENTIALS_FILE):
-    st.sidebar.info("Google Drive još nije podešen. Upute su u datoteci **PODESAVANJE_GOOGLE_DRIVE.md**.")
+    st.sidebar.info("Google Drive još nije podešen. Učitajte ključ programa (*google_credentials.json*) "
+                    "ili pogledajte upute u **PODESAVANJE_GOOGLE_DRIVE.md**.")
+    key_file = st.sidebar.file_uploader("Ključ programa (google_credentials.json)", type=["json"], key="cred_upload")
+    if key_file is not None:
+        problem = drive.save_credentials(key_file.getvalue())
+        if problem:
+            st.sidebar.error(problem)
+        else:
+            st.sidebar.success("Ključ je spremljen.")
+            st.rerun()
 else:
     try:
         drive_service = drive.get_service(interactive=False)  # Tiha prijava ako je već spremljena
     except Exception as e:
         st.sidebar.error(f"Greška pri spajanju na Google Drive: {e}")
 
-    if drive_service is None:
+    if drive_service is None and drive.SERVER_MODE:
+        # Na poslužitelju nema preglednika: prijava u pregledniku korisnika pa kopiranje adrese
+        login = st.session_state.get("web_login")
+        if login is None:
+            st.sidebar.caption("Prijava se obnavlja otprilike jednom tjedno.")
+            if st.sidebar.button("🔑 Prijavi se u Google Drive"):
+                try:
+                    url, flow = drive.start_web_login()
+                    st.session_state.web_login = {"url": url, "flow": flow}
+                    st.rerun()
+                except Exception as e:
+                    st.sidebar.error(f"Prijava se ne može pokrenuti: {e}")
+        else:
+            st.sidebar.markdown(
+                f"**1.** [Otvorite Google prijavu]({login['url']}), odaberite račun i odobrite pristup.  \n"
+                "**2.** Preglednik zatim prikaže stranicu koja se ne može otvoriti (*localhost*) - to je u redu. "
+                "Kopirajte cijelu adresu iz trake preglednika i zalijepite je ovdje:"
+            )
+            pasted = st.sidebar.text_input("Adresa iz preglednika", key="web_login_paste",
+                                           placeholder="http://localhost:8765/?state=...&code=...")
+            c1, c2 = st.sidebar.columns(2)
+            if c1.button("Završi prijavu", type="primary", disabled=not pasted):
+                try:
+                    drive.finish_web_login(login["flow"], pasted)
+                    st.session_state.pop("web_login", None)
+                    st.session_state.pop("web_login_paste", None)
+                    st.rerun()
+                except Exception as e:
+                    st.sidebar.error(f"Prijava nije uspjela: {e}. Pokušajte ponovno od koraka 1.")
+            if c2.button("Odustani"):
+                st.session_state.pop("web_login", None)
+                st.rerun()
+    elif drive_service is None:
         st.sidebar.caption("Prva prijava otvara preglednik u kojem odobrite pristup.")
         if st.sidebar.button("🔑 Prijavi se u Google Drive"):
             logged_in = False
