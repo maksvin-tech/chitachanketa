@@ -6,7 +6,10 @@ import cv2
 import numpy as np
 import pandas as pd
 import streamlit as st
-import fitz  # PyMuPDF
+try:
+    import pymupdf as fitz  # PyMuPDF (novije verzije)
+except ImportError:
+    import fitz  # PyMuPDF (starije verzije)
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import LTTextContainer, LTChar
 
