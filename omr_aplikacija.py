@@ -803,17 +803,31 @@ if uploaded_files:
     if units:
         st.subheader("✏️ Ručni unos i vizualna provjera")
         flagged = set(many_missing.index)
+        # Odabir (filtar, anketa, stranica) pamti se između osvježavanja - nakon upisa odgovora
+        # ostajete na istoj anketi i stranici
+        if st.session_state.get("manual_for") != proc_key:
+            st.session_state.manual_for = proc_key
+            st.session_state.manual_only_flagged = bool(flagged)
+            st.session_state.pop("manual_sel", None)
+            st.session_state.manual_page = 0
+            st.session_state.manual_snap = {}
         only_flagged = st.checkbox(f"Prikaži samo ankete s puno praznih odgovora ({len(flagged)})",
-                                   value=bool(flagged), disabled=not flagged)
-        choices = [i for i in range(len(units)) if i not in edits["deleted"] and (not only_flagged or i in flagged)]
+                                   key="manual_only_flagged")
+        alive = [i for i in range(len(units)) if i not in edits["deleted"]]
+        choices = [i for i in alive if not only_flagged or i in flagged]
+        current = st.session_state.get("manual_sel")
+        if current in alive and current not in choices:
+            choices = sorted(choices + [current])  # Ispravljena anketa ostaje odabrana i kad više nije označena
         if not choices:
-            choices = [i for i in range(len(units)) if i not in edits["deleted"]]
+            choices = alive
+        if current not in choices:
+            st.session_state.pop("manual_sel", None)
 
         def unit_label(i):
             n = int(missing_counts.get(i, 0))
             return f"{'⚠️ ' if i in flagged else ''}{units[i][0]}  ({n} praznih)"
 
-        sel = st.selectbox("Odaberite anketu:", choices, format_func=unit_label) if choices else None
+        sel = st.selectbox("Odaberite anketu:", choices, format_func=unit_label, key="manual_sel") if choices else None
         if sel is not None:
             preview_key = (proc_key, sel, sensitivity)
             preview = st.session_state.get("omr_preview")
@@ -825,39 +839,44 @@ if uploaded_files:
                 st.session_state.omr_preview = preview
             st.caption("Zeleno = očitano, narančasto = više oznaka u retku. Upišite odgovor (1-5, ocjenu, 0/1 ...) "
                        "ili *x* ako nema odgovora; promjene se odmah primjenjuju na tablicu, Excel i izvještaj.")
-            tabs = st.tabs([f"Stranica {p + 1}" for p in range(len(preview["images"]))])
-            for page, tab in enumerate(tabs):
-                with tab:
-                    img_col, edit_col = st.columns([3, 2])
-                    img_col.image(preview["images"][page], use_container_width=True)
-                    page_cols = [(name, allowed) for name, p, allowed in ans_cols if p == page]
-                    if not page_cols:
-                        continue
-                    manual_df = pd.DataFrame({
+            n_pages = len(preview["images"])
+            if st.session_state.get("manual_page", 0) >= n_pages:
+                st.session_state.manual_page = 0
+            page = st.radio("Stranica obrasca", list(range(n_pages)), format_func=lambda p: f"Stranica {p + 1}",
+                            horizontal=True, key="manual_page")
+            img_col, edit_col = st.columns([3, 2])
+            img_col.image(preview["images"][page], use_container_width=True)
+            page_cols = [(name, allowed) for name, p, allowed in ans_cols if p == page]
+            if page_cols:
+                manual_key = f"manual|{edits['manual_ver']}|{sensitivity}|{sel}|{page}"
+                # Polazna tablica se ne mijenja dok upisujete (tablica se ne iscrtava iznova pa
+                # kursor ostaje u stupcu); vaši upisi se primjenjuju na nju
+                snaps = st.session_state.setdefault("manual_snap", {})
+                if manual_key not in snaps:
+                    snaps[manual_key] = pd.DataFrame({
                         "Pitanje": [short_question(n) for n, _a in page_cols],
                         "Očitano": [read_df.at[sel, n] for n, _a in page_cols],
                         "Odgovor": [table_df.at[sel, n] for n, _a in page_cols],
                         "Dopušteno": [", ".join(a) if a else "4 znamenke" for _n, a in page_cols],
-                    })
-                    manual_key = f"manual|{edits['manual_ver']}|{sel}|{page}"
+                    }).astype(object)
 
-                    def on_manual_edit(key=manual_key, names=[n for n, _a in page_cols], lab=sel):
-                        for pos, values in st.session_state.get(key, {}).get("edited_rows", {}).items():
-                            if "Odgovor" in values:
-                                col = names[int(pos)]
-                                cells[(lab, col)] = clean_answer(values["Odgovor"], allowed_of[col])
-                        edits["table_ver"] += 1  # Glavna tablica se iscrtava s novim vrijednostima
+                def on_manual_edit(key=manual_key, names=[n for n, _a in page_cols], lab=sel):
+                    for pos, values in st.session_state.get(key, {}).get("edited_rows", {}).items():
+                        if "Odgovor" in values:
+                            col = names[int(pos)]
+                            cells[(lab, col)] = clean_answer(values["Odgovor"], allowed_of[col])
+                    edits["table_ver"] += 1  # Glavna tablica se iscrtava s novim vrijednostima
 
-                    edit_col.data_editor(
-                        manual_df, hide_index=True, use_container_width=True, key=manual_key,
-                        on_change=on_manual_edit, height=min(36 * (len(page_cols) + 1) + 4, 1400),
-                        column_config={
-                            "Pitanje": st.column_config.TextColumn(disabled=True),
-                            "Očitano": st.column_config.TextColumn(disabled=True, width="small"),
-                            "Odgovor": st.column_config.TextColumn(width="small"),
-                            "Dopušteno": st.column_config.TextColumn(disabled=True),
-                        },
-                    )
+                edit_col.data_editor(
+                    snaps[manual_key], hide_index=True, use_container_width=True, key=manual_key,
+                    on_change=on_manual_edit, height=min(36 * (len(page_cols) + 1) + 4, 1400),
+                    column_config={
+                        "Pitanje": st.column_config.TextColumn(disabled=True),
+                        "Očitano": st.column_config.TextColumn(disabled=True, width="small"),
+                        "Odgovor": st.column_config.TextColumn(width="small"),
+                        "Dopušteno": st.column_config.TextColumn(disabled=True),
+                    },
+                )
 
     # Ručni ispravci ulaze u Excel, izvještaj i Google Drive (brojevi kao brojevi, 'x' = nedostaje)
     edited_df = table_df.copy()
