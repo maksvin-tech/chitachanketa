@@ -1,0 +1,3542 @@
+{
+ "0001": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Matematika",
+   "puni_naziv": "Preddiplomski sveučilišni studij Matematika",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0002": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Matematika; smjer: nastavnički",
+   "puni_naziv": "Preddiplomski sveučilišni studij Matematika; smjer: nastavnički",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0003": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Matematika i fizika; smjer: nastavnički",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Matematika i fizika; smjer: nastavnički",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0004": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Fizika; smjer nastavnički",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Fizika; smjer nastavnički",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0005": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Fizika; smjer nastavnički",
+   "puni_naziv": "Preddiplomski sveučilišni studij Fizika; smjer nastavnički",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0006": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Fizika i informatika, smjer nastavnički",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Fizika i informatika, smjer nastavnički",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0007": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Fizika i kemija smjer; nastavnički",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Fizika i kemija smjer; nastavnički",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0008": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Fizika i tehnika smjer; nastavnički",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Fizika i tehnika smjer; nastavnički",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0009": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Fizika; smjer istraživački",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Fizika; smjer istraživački",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0010": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Geofizika",
+   "puni_naziv": "Preddiplomski sveučilišni studij Geofizika",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0011": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Geografija smjer; istraživački",
+   "puni_naziv": "Preddiplomski sveučilišni studij Geografija smjer; istraživački",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0012": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Geografija i povijest smjer; nastavnički",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Geografija i povijest smjer; nastavnički",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0013": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Geologija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Geologija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0014": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Biologija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Biologija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0015": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Molekularna biologija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Molekularna biologija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0016": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Znanosti o okolišu",
+   "puni_naziv": "Preddiplomski sveučilišni studij Znanosti o okolišu",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0017": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Biologija i Kemija smjer; nastavnički",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Biologija i Kemija smjer; nastavnički",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0018": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Kemija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Kemija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0019": [
+  {
+   "fakultet": "Arhitektonski fakultet",
+   "program": "Arhitektura i urbanizam",
+   "puni_naziv": "Preddiplomski sveučilišni studij Arhitektura i urbanizam",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0020": [
+  {
+   "fakultet": "Arhitektonski fakultet",
+   "program": "Dizajn",
+   "puni_naziv": "Preddiplomski sveučilišni studij Dizajn",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0021": [
+  {
+   "fakultet": "Fakultet elektrotehnike i računarstva",
+   "program": "Elektrotehnika i informacijska tehnologija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Elektrotehnika i informacijska tehnologija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0022": [
+  {
+   "fakultet": "Fakultet elektrotehnike i računarstva",
+   "program": "Računarstvo",
+   "puni_naziv": "Preddiplomski sveučilišni studij Računarstvo",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0023": [
+  {
+   "fakultet": "Fakultet kemijskog inženjerstva i tehnologije",
+   "program": "Kemijsko inženjerstvo",
+   "puni_naziv": "Preddiplomski sveučilišni studij Kemijsko inženjerstvo",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0024": [
+  {
+   "fakultet": "Fakultet kemijskog inženjerstva i tehnologije",
+   "program": "Ekoinženjerstvo",
+   "puni_naziv": "Preddiplomski sveučilišni studij Ekoinženjerstvo",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0025": [
+  {
+   "fakultet": "Fakultet kemijskog inženjerstva i tehnologije",
+   "program": "Kemija i inženjerstvo materijala",
+   "puni_naziv": "Preddiplomski sveučilišni studij Kemija i inženjerstvo materijala",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0026": [
+  {
+   "fakultet": "Fakultet kemijskog inženjerstva i tehnologije",
+   "program": "Primijenjena kemija; smjerovi: Kemija u zaštiti okoliša i izvori energije, Specifični materijali i napredne tehnologije, Primjenjena organska kemija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Primijenjena kemija; smjerovi: Kemija u zaštiti okoliša i izvori energije, Specifični materijali i napredne tehnologije, Primjenjena organska kemija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0027": [
+  {
+   "fakultet": "Fakultet prometnih znanosti",
+   "program": "Promet; smjerovi: Cesovni, Željeznički, Vodni, Zračni, Poštanski, Informacijsko-komunikacijski, Gradski",
+   "puni_naziv": "Preddiplomski sveučilišni studij Promet; smjerovi: Cesovni, Željeznički, Vodni, Zračni, Poštanski, Informacijsko-komunikacijski, Gradski",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0028": [
+  {
+   "fakultet": "Fakultet prometnih znanosti",
+   "program": "Inteligentni transportni sustavi i logistika, smjerovi: Inteligenstni transkoprtni sustavi, Logistika",
+   "puni_naziv": "Preddiplomski sveučilišni studij Inteligentni transportni sustavi i logistika, smjerovi: Inteligenstni transkoprtni sustavi, Logistika",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0029": [
+  {
+   "fakultet": "Fakultet prometnih znanosti",
+   "program": "Aeronautika",
+   "puni_naziv": "Preddiplomski sveučilišni studij Aeronautika",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0030": [
+  {
+   "fakultet": "Fakultet strojarstva i brodogradnje",
+   "program": "Strojarstva",
+   "puni_naziv": "Preddiplomski sveučilišni studij Strojarstva",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0031": [
+  {
+   "fakultet": "Fakultet strojarstva i brodogradnje",
+   "program": "Brodogradnje",
+   "puni_naziv": "Preddiplomski sveučilišni studij Brodogradnje",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0032": [
+  {
+   "fakultet": "Fakultet strojarstva i brodogradnje",
+   "program": "Zrakoplovstva",
+   "puni_naziv": "Preddiplomski sveučilišni studij Zrakoplovstva",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0033": [
+  {
+   "fakultet": "Geodetski fakultet",
+   "program": "Geodezija i geoinformatika",
+   "puni_naziv": "Preddiplomski sveučilišni studij Geodezija i geoinformatika",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0034": [
+  {
+   "fakultet": "Geotehnički fakultet",
+   "program": "Inženjerstvo okoliša",
+   "puni_naziv": "Preddiplomski sveučilišni studij Inženjerstvo okoliša",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0035": [
+  {
+   "fakultet": "Građevinski fakultet",
+   "program": "Građevinarstvo",
+   "puni_naziv": "Preddiplomski sveučilišni studij Građevinarstvo",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0036": [
+  {
+   "fakultet": "Grafički fakultet",
+   "program": "Grafička tehnnologija, smjerovi: Tehničko tehnološki, Dizajn grafičkih proizvoda",
+   "puni_naziv": "Preddiplomski sveučilišni studij Grafička tehnnologija, smjerovi: Tehničko tehnološki, Dizajn grafičkih proizvoda",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0037": [
+  {
+   "fakultet": "Metalurški fakultet",
+   "program": "Metalurgija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Metalurgija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0038": [
+  {
+   "fakultet": "Metalurški fakultet",
+   "program": "Ljevarstvo",
+   "puni_naziv": "Stručni sveučilišni studij Ljevarstvo",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0039": [
+  {
+   "fakultet": "Rudarsko-geološko-naftni fakultet",
+   "program": "Rudarstvo",
+   "puni_naziv": "Preddiplomski sveučilišni studij Rudarstvo",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0040": [
+  {
+   "fakultet": "Rudarsko-geološko-naftni fakultet",
+   "program": "Geološko inženjerstvo",
+   "puni_naziv": "Preddiplomski sveučilišni studij Geološko inženjerstvo",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0041": [
+  {
+   "fakultet": "Rudarsko-geološko-naftni fakultet",
+   "program": "Naftno rudarstvo",
+   "puni_naziv": "Preddiplomski sveučilišni studij Naftno rudarstvo",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0042": [
+  {
+   "fakultet": "Tekstilno-tehnološki fakultet",
+   "program": "Tekstilna tehnologija i inženjerstvo:smjerovi: Odjevno inženjerstvo, projektiranje i menadžment tekstila, Industrijski dizajn tekstila i odjeće, Tekstilna kemija, materijali i ekologija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Tekstilna tehnologija i inženjerstvo:smjerovi: Odjevno inženjerstvo, projektiranje i menadžment tekstila, Industrijski dizajn tekstila i odjeće, Tekstilna kemija, materijali i ekologija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0043": [
+  {
+   "fakultet": "Tekstilno-tehnološki fakultet",
+   "program": "Tekstilni i modni dizajn, smjerovi: Modni dizajn, Dizajn tekstila",
+   "puni_naziv": "Preddiplomski sveučilišni studij Tekstilni i modni dizajn, smjerovi: Modni dizajn, Dizajn tekstila",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0044": [
+  {
+   "fakultet": "Tekstilno-tehnološki fakultet",
+   "program": "Tekstilna odjevna i obućarska tehnologija; smjerovi: Takstilna tehnologija-mehanička,Tekstilna tehnologija-kemijska, Odjevna tehnologija, Obućarska tehnologija, Dizajn obuće u Varaždinu",
+   "puni_naziv": "Stručni studij Tekstilna odjevna i obućarska tehnologija; smjerovi: Takstilna tehnologija-mehanička,Tekstilna tehnologija-kemijska, Odjevna tehnologija, Obućarska tehnologija, Dizajn obuće u Varaždinu",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0045": [
+  {
+   "fakultet": "Farmaceutsko-biokemijski fakultet",
+   "program": "Farmacija",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Farmacija",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0046": [
+  {
+   "fakultet": "Farmaceutsko-biokemijski fakultet",
+   "program": "Medicinska biokemija",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Medicinska biokemija",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0047": [
+  {
+   "fakultet": "Medicinski fakultet",
+   "program": "Medicina",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Medicina",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0048": [
+  {
+   "fakultet": "Medicinski fakultet",
+   "program": "Medicinana engleskom jeziku",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Medicinana engleskom jeziku",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0049": [
+  {
+   "fakultet": "Stomatološki fakultet",
+   "program": "Dentalna medicina",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Dentalna medicina",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0050": [
+  {
+   "fakultet": "Veterinarski fakultet",
+   "program": "Veterinarska medicina",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Veterinarska medicina",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0051": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Agrarna ekonomika",
+   "puni_naziv": "Preddiplomski sveučilišni studij Agrarna ekonomika",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0052": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Agroekologija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Agroekologija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0053": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Animalne znanosti",
+   "puni_naziv": "Preddiplomski sveučilišni studij Animalne znanosti",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0054": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Biljne znanosti",
+   "puni_naziv": "Preddiplomski sveučilišni studij Biljne znanosti",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0055": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Ekološka poljoprivreda",
+   "puni_naziv": "Preddiplomski sveučilišni studij Ekološka poljoprivreda",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0056": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Hortikultura",
+   "puni_naziv": "Preddiplomski sveučilišni studij Hortikultura",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0057": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Krajobrazna arhitektura",
+   "puni_naziv": "Preddiplomski sveučilišni studij Krajobrazna arhitektura",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0058": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Poljoprivredna tehnika",
+   "puni_naziv": "Preddiplomski sveučilišni studij Poljoprivredna tehnika",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0059": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Zaštita bilja",
+   "puni_naziv": "Preddiplomski sveučilišni studij Zaštita bilja",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0060": [
+  {
+   "fakultet": "Prehrambeno-biotehnološki fakultet",
+   "program": "Prehrambena tehnologija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Prehrambena tehnologija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0061": [
+  {
+   "fakultet": "Prehrambeno-biotehnološki fakultet",
+   "program": "Biotehnologija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Biotehnologija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0062": [
+  {
+   "fakultet": "Prehrambeno-biotehnološki fakultet",
+   "program": "Nutricionizam",
+   "puni_naziv": "Preddiplomski sveučilišni studij Nutricionizam",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0063": [
+  {
+   "fakultet": "Fakultet šumarstva i drvne tehnologije",
+   "program": "Šumarstvo",
+   "puni_naziv": "Preddiplomski sveučilišni studij Šumarstvo",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0064": [
+  {
+   "fakultet": "Fakultet šumarstva i drvne tehnologije",
+   "program": "Urbano šumarstvo, zaštita prirode i okoliša",
+   "puni_naziv": "Preddiplomski sveučilišni studij Urbano šumarstvo, zaštita prirode i okoliša",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0065": [
+  {
+   "fakultet": "Fakultet šumarstva i drvne tehnologije",
+   "program": "Drvna tehnologija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Drvna tehnologija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0066": [
+  {
+   "fakultet": "Fakultet šumarstva i drvne tehnologije",
+   "program": "Drvna tehnologija u Virovitici",
+   "puni_naziv": "Stručni studij Drvna tehnologija u Virovitici",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0067": [
+  {
+   "fakultet": "Edukacijsko-rehabilitacijski fakultet",
+   "program": "Logopedija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Logopedija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0068": [
+  {
+   "fakultet": "Edukacijsko-rehabilitacijski fakultet",
+   "program": "Socijalna pedagogija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Socijalna pedagogija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0069": [
+  {
+   "fakultet": "Edukacijsko-rehabilitacijski fakultet",
+   "program": "Rehabilitacija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Rehabilitacija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0070": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Ekonomija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Ekonomija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0071": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Poslovna ekonomija, smjerovi: Financije, Računovodstvo i revizija, marketing, Menadžment, Menadžerska informatika, Trgovina, Turizam, Analiza i poslovno planiranje",
+   "puni_naziv": "Preddiplomski sveučilišni studij Poslovna ekonomija, smjerovi: Financije, Računovodstvo i revizija, marketing, Menadžment, Menadžerska informatika, Trgovina, Turizam, Analiza i poslovno planiranje",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0072": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Poslovna ekonomija, smjer: Trgovina u Koprivnici",
+   "puni_naziv": "Preddiplomski sveučilišni studij Poslovna ekonomija, smjer: Trgovina u Koprivnici",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0073": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Poduzetništvo u Bjelovaru",
+   "puni_naziv": "Preddiplomski sveučilišni studij Poduzetništvo u Bjelovaru",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0074": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Poslovna ekonomija u Zagrebu",
+   "puni_naziv": "Stručni studij Poslovna ekonomija u Zagrebu",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0075": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Poslovna ekonomija, smjerovi: Trgovinsko poslovanje, Turističko poslovanje, Računovodstvo i financije, Poslovna tajnica/poslovni tajnik u Zaboku",
+   "puni_naziv": "Stručni studij Poslovna ekonomija, smjerovi: Trgovinsko poslovanje, Turističko poslovanje, Računovodstvo i financije, Poslovna tajnica/poslovni tajnik u Zaboku",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0076": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Poslovna ekonomija, smjerovi: Trgovinsko poslovanje, Turističko poslovanje, Računovodstvo io financije, Poslovna tajnica/poslovni tajnik u Koprivnici",
+   "puni_naziv": "Stručni studij Poslovna ekonomija, smjerovi: Trgovinsko poslovanje, Turističko poslovanje, Računovodstvo io financije, Poslovna tajnica/poslovni tajnik u Koprivnici",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0077": [
+  {
+   "fakultet": "Fakultet organizacije i informatike",
+   "program": "Ekonomika poduzetništva (FOI+EF)",
+   "puni_naziv": "Preddiplomski sveučilišni studij Ekonomika poduzetništva (FOI+EF)",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0078": [
+  {
+   "fakultet": "Fakultet organizacije i informatike",
+   "program": "Informacijski i poslovni sustavi",
+   "puni_naziv": "Preddiplomski sveučilišni studij Informacijski i poslovni sustavi",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0079": [
+  {
+   "fakultet": "Fakultet organizacije i informatike",
+   "program": "Poslovni sustavi",
+   "puni_naziv": "Preddiplomski sveučilišni studij Poslovni sustavi",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0080": [
+  {
+   "fakultet": "Fakultet organizacije i informatike",
+   "program": "Informacijske tehnologije i digitalizacija poslovanja",
+   "puni_naziv": "Stručni studij Informacijske tehnologije i digitalizacija poslovanja",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0082": [
+  {
+   "fakultet": "Fakultet organizacije i informatike",
+   "program": "Informacijske tehnologije i digitalizacija poslovanja u Križevcima",
+   "puni_naziv": "Stručni studij Informacijske tehnologije i digitalizacija poslovanja u Križevcima",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0083": [
+  {
+   "fakultet": "Fakultet organizacije i informatike",
+   "program": "Informacijske tehnologije i digitalizacija poslovanja u Sisku",
+   "puni_naziv": "Stručni studij Informacijske tehnologije i digitalizacija poslovanja u Sisku",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0084": [
+  {
+   "fakultet": "Fakultet organizacije i informatike",
+   "program": "Informacijske tehnologije i digitalizacija poslovanja u Zaboku",
+   "puni_naziv": "Stručni studij Informacijske tehnologije i digitalizacija poslovanja u Zaboku",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0085": [
+  {
+   "fakultet": "Fakultet političkih znanosti",
+   "program": "Politologija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Politologija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0086": [
+  {
+   "fakultet": "Fakultet političkih znanosti",
+   "program": "Novinarstvo",
+   "puni_naziv": "Preddiplomski sveučilišni studij Novinarstvo",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0087": [
+  {
+   "fakultet": "Kineziološki fakultet",
+   "program": "Kineziologija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Kineziologija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0088": [
+  {
+   "fakultet": "Pravni fakultet",
+   "program": "Pravo",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Pravo",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0089": [
+  {
+   "fakultet": "Pravni fakultet",
+   "program": "Socijalni rad",
+   "puni_naziv": "Preddiplomski sveučilišni studij Socijalni rad",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0090": [
+  {
+   "fakultet": "Učiteljski fakultet",
+   "program": "Učiteljski studij (165) - strani jezici",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Učiteljski studij (165) - strani jezici",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0091": [
+  {
+   "fakultet": "Učiteljski fakultet",
+   "program": "Učiteljski studij (366)- moduli",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Učiteljski studij (366)- moduli",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0092": [
+  {
+   "fakultet": "Učiteljski fakultet",
+   "program": "Rani i predškolski odgoj i obrazovanje, Zagreb, Čakovec, Petrinja",
+   "puni_naziv": "Preddiplomski sveučilišni studij Rani i predškolski odgoj i obrazovanje, Zagreb, Čakovec, Petrinja",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0093": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Anglistika - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Anglistika - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0094": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Antropologija - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Antropologija - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0095": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Arheologija - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Arheologija - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0096": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Češki jezik i književnost - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij j Češki jezik i književnost - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0097": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Etnologija i kulturna antropologija - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Etnologija i kulturna antropologija - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0098": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Filozofija - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Filozofija - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0099": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Filozofija - jednopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Filozofija - jednopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0100": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Fonetika - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Fonetika - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0101": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Francuski jezik i književnost - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Francuski jezik i književnost - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0102": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Germanistika - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Germanistika - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0103": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Grčki jezik i književnost - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Grčki jezik i književnost - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0104": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Hungarologija - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Hungarologija - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0105": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Indologija - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Indologija - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0106": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Informacijske znanosti",
+   "puni_naziv": "Preddiplomski sveučilišni studij Informacijske znanosti",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0107": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Judaistika - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Judaistika - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0108": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Južnoslavenski jezici i književnost-dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Južnoslavenski jezici i književnost-dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0109": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Komparativna književnost - jednopredmetni i dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Komparativna književnost - jednopredmetni i dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0110": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Kroatistika - jednopredmetni i dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Kroatistika - jednopredmetni i dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0111": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Latinski jezik i književnost - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Latinski jezik i književnost - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0112": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Lingvistika- dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Lingvistika- dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0113": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Nederlandistika - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Nederlandistika - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0114": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Pedagogija - jednopedmetni i dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Pedagogija - jednopedmetni i dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0115": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Poljski jezik i književnost - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Poljski jezik i književnost - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0116": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Portugalski jezik i književnost - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Portugalski jezik i književnost - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0117": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Povijest",
+   "puni_naziv": "Preddiplomski sveučilišni studij Povijest",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0118": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Povijest umjetnost",
+   "puni_naziv": "Preddiplomski sveučilišni studij Povijest umjetnost",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0119": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Psihologija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Psihologija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0120": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Rumunjski jezik i književnost - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Rumunjski jezik i književnost - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0121": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Ruski jezik i književnost - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Ruski jezik i književnost - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0122": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Slovački jezik i književnost - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Slovački jezik i književnost - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0123": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Sociologija - jednopredmetni i dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Sociologija - jednopredmetni i dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0124": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Španjolski jezik i književnost - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Španjolski jezik i književnost - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0125": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Švedski jezik i kultura - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Švedski jezik i kultura - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0126": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Talijanistika - jednopredmetni i dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Talijanistika - jednopredmetni i dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0127": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Turkologija - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Turkologija - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0128": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Ukrajinski jezik i književnost - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Ukrajinski jezik i književnost - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0129": [
+  {
+   "fakultet": "Fakultet hrvatskih studija",
+   "program": "Filozofija dvopredmetni",
+   "puni_naziv": "Preddiplomski sveučilišni studij Filozofija dvopredmetni",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0130": [
+  {
+   "fakultet": "Fakultet hrvatskih studija",
+   "program": "Komunikologija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Komunikologija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0131": [
+  {
+   "fakultet": "Fakultet hrvatskih studija",
+   "program": "Kroatologija -jednopredemtni i dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Kroatologija -jednopredemtni i dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0132": [
+  {
+   "fakultet": "Fakultet hrvatskih studija",
+   "program": "Povijest-jednopredmetni i dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Povijest-jednopredmetni i dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0133": [
+  {
+   "fakultet": "Fakultet hrvatskih studija",
+   "program": "Psihologija- jednopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Psihologija- jednopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0134": [
+  {
+   "fakultet": "Fakultet hrvatskih studija",
+   "program": "Sociologija- jednopredmetni i dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Sociologija- jednopredmetni i dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0135": [
+  {
+   "fakultet": "Filozofski fakultet Družbe Isusove",
+   "program": "Filozofija i religijska znanost - dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Filozofija i religijska znanost - dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0136": [
+  {
+   "fakultet": "Filozofski fakultet Družbe Isusove",
+   "program": "Filozofija i latinski jezik",
+   "puni_naziv": "Preddiplomski sveučilišni studij Filozofija i latinski jezik",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0137": [
+  {
+   "fakultet": "Filozofski fakultet Družbe Isusove",
+   "program": "Filozofija - jednopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Filozofija - jednopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0138": [
+  {
+   "fakultet": "Katolički bogoslovni fakultet",
+   "program": "Crkvena glazba",
+   "puni_naziv": "Preddiplomski sveučilišni studij za Crkvena glazba",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0139": [
+  {
+   "fakultet": "Katolički bogoslovni fakultet",
+   "program": "Religiozna pedagogija i katehetika",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Religiozna pedagogija i katehetika",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0140": [
+  {
+   "fakultet": "Katolički bogoslovni fakultet",
+   "program": "Teologija u Rijeci",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Teologija u Rijeci",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0141": [
+  {
+   "fakultet": "Katolički bogoslovni fakultet",
+   "program": "Filozofsko-teološki studij u Zagrebu",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Filozofsko-teološki studij u Zagrebu",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0142": [
+  {
+   "fakultet": "Akademija dramske umjetnosti",
+   "program": "Gluma",
+   "puni_naziv": "Preddiplomski sveučilišni studij Gluma",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0143": [
+  {
+   "fakultet": "Akademija dramske umjetnosti",
+   "program": "Kazališna režija i radiofonija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Kazališna režija i radiofonija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0144": [
+  {
+   "fakultet": "Akademija dramske umjetnosti",
+   "program": "Dramaturgija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Dramaturgija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0145": [
+  {
+   "fakultet": "Akademija dramske umjetnosti",
+   "program": "Filmska i TV režija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Filmska i TV režija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0146": [
+  {
+   "fakultet": "Akademija dramske umjetnosti",
+   "program": "Snimanje",
+   "puni_naziv": "Preddiplomski sveučilišni studij Snimanje",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0147": [
+  {
+   "fakultet": "Akademija dramske umjetnosti",
+   "program": "Montaža",
+   "puni_naziv": "Preddiplomski sveučilišni studij Montaža",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0148": [
+  {
+   "fakultet": "Akademija dramske umjetnosti",
+   "program": "Produkcija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Produkcija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0149": [
+  {
+   "fakultet": "Akademija likovnih umjetnosti",
+   "program": "Slikarstvo",
+   "puni_naziv": "Preddiplomski sveučilišni studij Slikarstvo",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0150": [
+  {
+   "fakultet": "Akademija likovnih umjetnosti",
+   "program": "Grafika",
+   "puni_naziv": "Preddiplomski sveučilišni studij Grafika",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0151": [
+  {
+   "fakultet": "Akademija likovnih umjetnosti",
+   "program": "Kiparstvo",
+   "puni_naziv": "Preddiplomski sveučilišni studij Kiparstvo",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0152": [
+  {
+   "fakultet": "Akademija likovnih umjetnosti",
+   "program": "Likovna kultura",
+   "puni_naziv": "Preddiplomski sveučilišni studij Likovna kultura",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0153": [
+  {
+   "fakultet": "Akademija likovnih umjetnosti",
+   "program": "Animirani film i novi mediji",
+   "puni_naziv": "Preddiplomski sveučilišni studij Animirani film i novi mediji",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0154": [
+  {
+   "fakultet": "Akademija likovnih umjetnosti",
+   "program": "Restauriranje i konzerviranje umjetnina, smjerovi: Slikarstvo, Kiparstvo",
+   "puni_naziv": "Integrirani preddiplomski i diplomski studij Restauriranje i konzerviranje umjetnina, smjerovi: Slikarstvo, Kiparstvo",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0155": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Teorijska matematika",
+   "puni_naziv": "Diplomski sveučilišni studij Teorijska matematika",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0156": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Primijenjena matematika",
+   "puni_naziv": "Diplomski sveučilišni studij Primijenjena matematika",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0157": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Matematička statistika",
+   "puni_naziv": "Diplomski sveučilišni studij Matematička statistika",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0158": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Računarstvo i matematika",
+   "puni_naziv": "Diplomski sveučilišni studij Računarstvo i matematika",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0159": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Financijska i poslovna matematika",
+   "puni_naziv": "Diplomski sveučilišni studij Financijska i poslovna matematika",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0160": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Matematika; smjer: nastavnički",
+   "puni_naziv": "Diplomski sveučilišni studij Matematika; smjer: nastavnički",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0161": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Matematika i informatika; smjer nastavnički",
+   "puni_naziv": "Diplomski sveučilišni studij Matematika i informatika; smjer nastavnički",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0162": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Fizika i geofizika; smjerovi: Seizmologija i fizika čvrste Zemlje, Meteorologija i fizička oceanografija",
+   "puni_naziv": "Diplomski sveučilišni studij Fizika i geofizika; smjerovi: Seizmologija i fizika čvrste Zemlje, Meteorologija i fizička oceanografija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0163": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Fizika; smjer istraživački",
+   "puni_naziv": "Diplomski sveučilišni studij Fizika; smjer istraživački",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0164": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Geografija; smjer: Fizička geografija s geoekologijom, Prostorno planiranje i regionalni razvoj, Baština i turizam, Geografski informacijski sustavi",
+   "puni_naziv": "Diplomski sveučilišni studij Geografija; smjer: Fizička geografija s geoekologijom, Prostorno planiranje i regionalni razvoj, Baština i turizam, Geografski informacijski sustavi",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0165": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Geografija jednopredmetni studij; smjer: nastavnički",
+   "puni_naziv": "Diplomski sveučilišni studij Geografija jednopredmetni studij; smjer: nastavnički",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0166": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Geologija",
+   "puni_naziv": "Diplomski sveučilišni studij Geologija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0167": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Geologija zaštite okoliša",
+   "puni_naziv": "Diplomski sveučilišni studij Geologija zaštite okoliša",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0168": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Ekologija i zaštita prirode",
+   "puni_naziv": "Diplomski sveučilišni studij Ekologija i zaštita prirode",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0169": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Eksperimentalna biologija",
+   "puni_naziv": "Diplomski sveučilišni studij Eksperimentalna biologija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0170": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Molekularna biologija",
+   "puni_naziv": "Diplomski sveučilišni studij Molekularna biologija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0171": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Znanosti o okolišu",
+   "puni_naziv": "Diplomski sveučilišni studij Znanosti o okolišu",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0172": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Kemija - jednopredmetni studij; smjer: nastavnički",
+   "puni_naziv": "Diplomski sveučilišni studij Kemija - jednopredmetni studij; smjer: nastavnički",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0173": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Kemija; smjer: istraživački",
+   "puni_naziv": "Diplomski sveučilišni studij Kemija; smjer: istraživački",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0174": [
+  {
+   "fakultet": "Arhitektonski fakultet",
+   "program": "Arhitektura i urbanizam",
+   "puni_naziv": "Diplomski sveučilišni studij Arhitektura i urbanizam",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0175": [
+  {
+   "fakultet": "Arhitektonski fakultet",
+   "program": "Dizajn",
+   "puni_naziv": "Diplomski sveučilišni studij Dizajn",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0176": [
+  {
+   "fakultet": "Fakultet elektrotehnike i računarstva",
+   "program": "Elektrotehnika i informacijska tehnologija",
+   "puni_naziv": "Diplomski sveučilišni studij Elektrotehnika i informacijska tehnologija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0177": [
+  {
+   "fakultet": "Fakultet elektrotehnike i računarstva",
+   "program": "Informacijska i komunikcijska tehnologija",
+   "puni_naziv": "Diplomski sveučilišni studij Informacijska i komunikcijska tehnologija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0178": [
+  {
+   "fakultet": "Fakultet elektrotehnike i računarstva",
+   "program": "Računarstvo",
+   "puni_naziv": "Diplomski sveučilišni studij Računarstvo",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0179": [
+  {
+   "fakultet": "Fakultet kemijskog inženjerstva i tehnologije",
+   "program": "Kemijsko inženjerstvo",
+   "puni_naziv": "Diplomski sveučilišni studij Kemijsko inženjerstvo",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0180": [
+  {
+   "fakultet": "Fakultet kemijskog inženjerstva i tehnologije",
+   "program": "Ekoinženjerstvo",
+   "puni_naziv": "Diplomski sveučilišni studij Ekoinženjerstvo",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0181": [
+  {
+   "fakultet": "Fakultet kemijskog inženjerstva i tehnologije",
+   "program": "Kemija i inženjerstvo materijala",
+   "puni_naziv": "Diplomski sveučilišni studij Kemija i inženjerstvo materijala",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0182": [
+  {
+   "fakultet": "Fakultet kemijskog inženjerstva i tehnologije",
+   "program": "Primijenjena kemija; smjerovi:Kemija u zaštiti okoliša i izvori energije, Specifični materijali i napredne tehnologije, Primjenjena organska kemija",
+   "puni_naziv": "Diplomski sveučilišni studij Primijenjena kemija; smjerovi:Kemija u zaštiti okoliša i izvori energije, Specifični materijali i napredne tehnologije, Primjenjena organska kemija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0183": [
+  {
+   "fakultet": "Fakultet prometnih znanosti",
+   "program": "Promet; smjerovi: Cestovni, Željeznički, Vodni, Zračni, Poštanski, Informacijsko-komunikacijski, Gradski",
+   "puni_naziv": "Diplomski sveučilišni studij Promet; smjerovi: Cestovni, Željeznički, Vodni, Zračni, Poštanski, Informacijsko-komunikacijski, Gradski",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0184": [
+  {
+   "fakultet": "Fakultet prometnih znanosti",
+   "program": "Inteligentni transportni sustavi i logistika; smjerovi:Inteligentni transportni sustavi, Logistika",
+   "puni_naziv": "Diplomski sveučilišni studij Inteligentni transportni sustavi i logistika; smjerovi:Inteligentni transportni sustavi, Logistika",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0185": [
+  {
+   "fakultet": "Fakultet prometnih znanosti",
+   "program": "Aeronautika",
+   "puni_naziv": "Diplomski sveučilišni studij Aeronautika",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0186": [
+  {
+   "fakultet": "Fakultet strojarstva i brodogradnje",
+   "program": "Strojarstvo",
+   "puni_naziv": "Diplomski sveučilišni studij Strojarstvo",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0187": [
+  {
+   "fakultet": "Fakultet strojarstva i brodogradnje",
+   "program": "Brodogradnja",
+   "puni_naziv": "Diplomski sveučilišni studij Brodogradnja",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0188": [
+  {
+   "fakultet": "Fakultet strojarstva i brodogradnje",
+   "program": "Zrakoplovstvo",
+   "puni_naziv": "Diplomski sveučilišni studij Zrakoplovstvo",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0189": [
+  {
+   "fakultet": "Geodetski fakultet",
+   "program": "Geodezija i geoinformatika",
+   "puni_naziv": "Diplomski sveučilišni studij Geodezija i geoinformatika",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0190": [
+  {
+   "fakultet": "Geotehnički fakultet",
+   "program": "Geoinženjerstvo; smjer: Geotehnika, Hidrotehnika, Inženjerstvo okoliša",
+   "puni_naziv": "Diplomski sveučilišni studij Geoinženjerstvo; smjer: Geotehnika, Hidrotehnika, Inženjerstvo okoliša",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0192": [
+  {
+   "fakultet": "Građevinski fakultet",
+   "program": "Građevinarstvo; smjerovi: Organizacija građenja, Prometnice, Geotehnika, Hidrotehnika, Konstrukcije, Materijali, Teorija i modeliranje konstrukcija",
+   "puni_naziv": "Diplomski sveučilišni studij Građevinarstvo; smjerovi: Organizacija građenja, Prometnice, Geotehnika, Hidrotehnika, Konstrukcije, Materijali, Teorija i modeliranje konstrukcija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0193": [
+  {
+   "fakultet": "Grafički fakultet",
+   "program": "Grafička tehnnologija; smjerovi: Tehničko-tehnološki, Dizajn grafičkih proizvoda",
+   "puni_naziv": "Diplomski sveučilišni studij Grafička tehnnologija; smjerovi: Tehničko-tehnološki, Dizajn grafičkih proizvoda",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0194": [
+  {
+   "fakultet": "Metalurški fakultet",
+   "program": "Metalurgija",
+   "puni_naziv": "Diplomski sveučilišni studij Metalurgija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0195": [
+  {
+   "fakultet": "Rudarsko-geološko-naftni fakultet",
+   "program": "Rudarstvo; smjer: Geotehnika, Rudarstvo, Zbrinjavanje i odlaganje otpada",
+   "puni_naziv": "Diplomski sveučilišni studij Rudarstvo; smjer: Geotehnika, Rudarstvo, Zbrinjavanje i odlaganje otpada",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0196": [
+  {
+   "fakultet": "Rudarsko-geološko-naftni fakultet",
+   "program": "Geologija; smjer: Geologija mineralnih sirovina, Geofizička istraživanja",
+   "puni_naziv": "Diplomski sveučilišni studij Geologija; smjer: Geologija mineralnih sirovina, Geofizička istraživanja",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0197": [
+  {
+   "fakultet": "Rudarsko-geološko-naftni fakultet",
+   "program": "Geološko inženjerstvo; smjer : Hidrogeologija, Inženjerska geologija, Geologija okoliša",
+   "puni_naziv": "Diplomski sveučilišni studij Geološko inženjerstvo; smjer : Hidrogeologija, Inženjerska geologija, Geologija okoliša",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0198": [
+  {
+   "fakultet": "Rudarsko-geološko-naftni fakultet",
+   "program": "Naftno rudarstvo; smjer: Opće naftno rudarstvo, Energetika, Zaštita okoliša u naftnom rudarstvu",
+   "puni_naziv": "Diplomski sveučilišni studij Naftno rudarstvo; smjer: Opće naftno rudarstvo, Energetika, Zaštita okoliša u naftnom rudarstvu",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0199": [
+  {
+   "fakultet": "Tekstilno-tehnološki fakultet",
+   "program": "Tekstilni i modni dizajn; smjerovi: Modni dizajn, Dizajn tekstila, Kostimografija, Teorija i kultura mode",
+   "puni_naziv": "Diplomski sveučilišni studij Tekstilni i modni dizajn; smjerovi: Modni dizajn, Dizajn tekstila, Kostimografija, Teorija i kultura mode",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0200": [
+  {
+   "fakultet": "Tekstilno-tehnološki fakultet",
+   "program": "Tekstilna tehnologija i inženjerstvo; smjerovi: Odjevno inženjerstvo, Projektiranje i menadžment tekstila, Industrijski dizajn tekstila i odjeće, Tekstilna kemija, materijali i ekologija",
+   "puni_naziv": "Diplomski sveučilišni studij Tekstilna tehnologija i inženjerstvo; smjerovi: Odjevno inženjerstvo, Projektiranje i menadžment tekstila, Industrijski dizajn tekstila i odjeće, Tekstilna kemija, materijali i ekologija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0201": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Agrobiznis i ruralni razvitak",
+   "puni_naziv": "Diplomski sveučilišni studij Agrobiznis i ruralni razvitak",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0202": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Agroekologija",
+   "puni_naziv": "Diplomski sveučilišni studij Agroekologija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0203": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Biljne znanosti",
+   "puni_naziv": "Diplomski sveučilišni studij Biljne znanosti",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0204": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Ekološka poljoprivreda i agroturizam",
+   "puni_naziv": "Diplomski sveučilišni studij Ekološka poljoprivreda i agroturizam",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0205": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Fitomedicina",
+   "puni_naziv": "Diplomski sveučilišni studij Fitomedicina",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0206": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Genetika i oplemenjivanje životinja",
+   "puni_naziv": "Diplomski sveučilišni studij Genetika i oplemenjivanje životinja",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0207": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Hortikultura",
+   "puni_naziv": "Diplomski sveučilišni studij Hortikultura",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0208": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Hranidba životinja i hrana",
+   "puni_naziv": "Diplomski sveučilišni studij Hranidba životinja i hrana",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0209": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Krajobrazna arhitektura",
+   "puni_naziv": "Diplomski sveučilišni studij Krajobrazna arhitektura",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0210": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Poljoprivredna tehnika",
+   "puni_naziv": "Diplomski sveučilišni studij Poljoprivredna tehnika",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0211": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Proizvodnja i prerada mesa",
+   "puni_naziv": "Diplomski sveučilišni studij Proizvodnja i prerada mesa",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0212": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Proizvodnja i prerada mlijeka",
+   "puni_naziv": "Diplomski sveučilišni studij Proizvodnja i prerada mlijeka",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0213": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Ribarstvo i lovstvo",
+   "puni_naziv": "Diplomski sveučilišni studij Ribarstvo i lovstvo",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0214": [
+  {
+   "fakultet": "Prehrambeno-biotehnološki fakultet",
+   "program": "Prehrambeno inženjerstvo",
+   "puni_naziv": "Diplomski sveučilišni studij Prehrambeno inženjerstvo",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0215": [
+  {
+   "fakultet": "Prehrambeno-biotehnološki fakultet",
+   "program": "Nutricionizmam",
+   "puni_naziv": "Diplomski sveučilišni studij Nutricionizmam",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0216": [
+  {
+   "fakultet": "Prehrambeno-biotehnološki fakultet",
+   "program": "Upravljanje sigurnošću hrane",
+   "puni_naziv": "Diplomski sveučilišni studij Upravljanje sigurnošću hrane",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0217": [
+  {
+   "fakultet": "Prehrambeno-biotehnološki fakultet",
+   "program": "Molekularna biotehnologija",
+   "puni_naziv": "Diplomski sveučilišni studij Molekularna biotehnologija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0218": [
+  {
+   "fakultet": "Prehrambeno-biotehnološki fakultet",
+   "program": "Bioprocesno inženjerstvo",
+   "puni_naziv": "Diplomski sveučilišni studij Bioprocesno inženjerstvo",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0219": [
+  {
+   "fakultet": "Fakultet šumarstva i drvne tehnologije",
+   "program": "Šumarstvo; smjer: Uzgajanje i uređivanje šuma s lovnim gospodarenjem",
+   "puni_naziv": "Diplomski sveučilišni studij Šumarstvo; smjer: Uzgajanje i uređivanje šuma s lovnim gospodarenjem",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0220": [
+  {
+   "fakultet": "Fakultet šumarstva i drvne tehnologije",
+   "program": "Šumarstvo: smjer: Tehnike, tehnologije i management u šumarstvu",
+   "puni_naziv": "Diplomski sveučilišni studij Šumarstvo: smjer: Tehnike, tehnologije i management u šumarstvu",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0221": [
+  {
+   "fakultet": "Fakultet šumarstva i drvne tehnologije",
+   "program": "Urbano šumarstvo, zaštita prirode i okoliša",
+   "puni_naziv": "Diplomski sveučilišni studij Urbano šumarstvo, zaštita prirode i okoliša",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0222": [
+  {
+   "fakultet": "Fakultet šumarstva i drvne tehnologije",
+   "program": "Drvnotehnološki procesi",
+   "puni_naziv": "Diplomski sveučilišni studij Drvnotehnološki procesi",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0223": [
+  {
+   "fakultet": "Fakultet šumarstva i drvne tehnologije",
+   "program": "Oblikovanje proizvoda od drva",
+   "puni_naziv": "Diplomski sveučilišni studij Oblikovanje proizvoda od drva",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0224": [
+  {
+   "fakultet": "Medicinski fakultet",
+   "program": "Sestrinstvo",
+   "puni_naziv": "Diplomski sveučilišni studij Sestrinstvo",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0225": [
+  {
+   "fakultet": "Edukacijsko-rehabilitacijski fakultet",
+   "program": "Logopedija",
+   "puni_naziv": "Diplomski sveučilišni studij Logopedija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0226": [
+  {
+   "fakultet": "Edukacijsko-rehabilitacijski fakultet",
+   "program": "Socijalna pedagogija",
+   "puni_naziv": "Diplomski sveučilišni studij Socijalna pedagogija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0227": [
+  {
+   "fakultet": "Edukacijsko-rehabilitacijski fakultet",
+   "program": "Edukacijska rehabilitacija",
+   "puni_naziv": "Diplomski sveučilišni studij Edukacijska rehabilitacija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0228": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Poslovna ekonomija, smjerovi: Financije, Računovodstvo i revizija, Marketing, Menadžment, Menadžerska informatika, Trgovina, Turizam, Analiza i poslovno planiranje",
+   "puni_naziv": "Diplomski sveučilišni studij Poslovna ekonomija, smjerovi: Financije, Računovodstvo i revizija, Marketing, Menadžment, Menadžerska informatika, Trgovina, Turizam, Analiza i poslovno planiranje",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0229": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Ekonomija",
+   "puni_naziv": "Diplomski sveučilišni studij Ekonomija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0230": [
+  {
+   "fakultet": "Fakultet organizacije i informatike",
+   "program": "Baze podataka i baze znanja",
+   "puni_naziv": "Diplomski sveučilišni studij Baze podataka i baze znanja",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0231": [
+  {
+   "fakultet": "Fakultet organizacije i informatike",
+   "program": "Informacijsko i programsko inženjerstvo",
+   "puni_naziv": "Diplomski sveučilišni studij Informacijsko i programsko inženjerstvo",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0232": [
+  {
+   "fakultet": "Fakultet organizacije i informatike",
+   "program": "Informatika u obrazovanju",
+   "puni_naziv": "Diplomski sveučilišni studij Informatika u obrazovanju",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0233": [
+  {
+   "fakultet": "Fakultet organizacije i informatike",
+   "program": "Organizacija poslovnih sustava",
+   "puni_naziv": "Diplomski sveučilišni studij Organizacija poslovnih sustava",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0234": [
+  {
+   "fakultet": "Fakultet organizacije i informatike",
+   "program": "Ekonomika poduzetništva",
+   "puni_naziv": "Diplomski sveučilišni studij Ekonomika poduzetništva",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0235": [
+  {
+   "fakultet": "Fakultet političkih znanosti",
+   "program": "Novinarstvo",
+   "puni_naziv": "Diplomski sveučilišni studij Novinarstvo",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0237": [
+  {
+   "fakultet": "Kineziološki fakultet",
+   "program": "Kineziologija",
+   "puni_naziv": "Diplomski sveučilišni studij Kineziologija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0238": [
+  {
+   "fakultet": "Pravni fakultet",
+   "program": "Socijalni rad",
+   "puni_naziv": "Diplomski sveučilišni studij Socijalni rad",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0239": [
+  {
+   "fakultet": "Pravni fakultet",
+   "program": "Socijalna politika",
+   "puni_naziv": "Diplomski studij Socijalna politika",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0240": [
+  {
+   "fakultet": "Učiteljski fakultet",
+   "program": "Menadžment i savjetovanje za europsko obrazovanje",
+   "puni_naziv": "Združeni međunarodni diplomski sveučilišni studij Menadžment i savjetovanje za europsko obrazovanje",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0241": [
+  {
+   "fakultet": "Učiteljski fakultet",
+   "program": "Rani i predškolski odgoj i obrazovanje",
+   "puni_naziv": "Diplomski sveučilišni studij Rani i predškolski odgoj i obrazovanje",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0242": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Anglistika - jednopredmetni studij; smjer: nastavnički, lingvistički, književno-kulturološki, prevoditeljski",
+   "puni_naziv": "Diplomski sveučilišni studij Anglistika - jednopredmetni studij; smjer: nastavnički, lingvistički, književno-kulturološki, prevoditeljski",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0243": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Anglistika - dvopredmetni studij; smjer: lingvistički, književno-kulturološki, prevoditeljski",
+   "puni_naziv": "Diplomski sveučilišni studij Anglistika - dvopredmetni studij; smjer: lingvistički, književno-kulturološki, prevoditeljski",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0244": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Antropologija",
+   "puni_naziv": "Diplomski sveučilišni studij Antropologija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0245": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Arheologija - jednopredmetni studij; smjer: prapovijesna, antička, srednjovjekovna",
+   "puni_naziv": "Diplomski sveučilišni studij Arheologija - jednopredmetni studij; smjer: prapovijesna, antička, srednjovjekovna",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0246": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Češki jezik i književnost - dvopredmetni studij; smjer: prevoditeljsko-kulturološki, nastavnički",
+   "puni_naziv": "Diplomski sveučilišni studij Češki jezik i književnost - dvopredmetni studij; smjer: prevoditeljsko-kulturološki, nastavnički",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0247": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Etnologija i kulturna antropologija",
+   "puni_naziv": "Diplomski sveučilišni studij Etnologija i kulturna antropologija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0248": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Filozofija; smjer: nastavnički - dvopredmetni studij, znanstveni - jednopredmetni i dvopredmetni studij",
+   "puni_naziv": "Diplomski sveučilišni studij Filozofija; smjer: nastavnički - dvopredmetni studij, znanstveni - jednopredmetni i dvopredmetni studij",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0249": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Fonetika - dvopredmetni studij, smjerovi: rehabilitacija govora i slušanja, govorništvo i znanstveno usmjerenje fonetike",
+   "puni_naziv": "Diplomski sveučilišni studij Fonetika - dvopredmetni studij, smjerovi: rehabilitacija govora i slušanja, govorništvo i znanstveno usmjerenje fonetike",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0250": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Francuski jezik i književnost - dvopredmetni studij, smjer: nastavnički, prevoditeljski, znanstveni",
+   "puni_naziv": "Diplomski sveučilišni studij Francuski jezik i književnost - dvopredmetni studij, smjer: nastavnički, prevoditeljski, znanstveni",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0251": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Germanistika - dvopredmetni studij, smjer: nastavnički, interkulturalni, prevoditeljski",
+   "puni_naziv": "Diplomski sveučilišni studij Germanistika - dvopredmetni studij, smjer: nastavnički, interkulturalni, prevoditeljski",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0252": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Grčki jezik i književnost - dvopredmetni studij, smjer: nastavnički, opći",
+   "puni_naziv": "Diplomski sveučilišni studij Grčki jezik i književnost - dvopredmetni studij, smjer: nastavnički, opći",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0253": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Hungarologija - dvopredmetni studij",
+   "puni_naziv": "Diplomski sveučilišni studij Hungarologija - dvopredmetni studij",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0254": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Indologija - dvopredmetni studij",
+   "puni_naziv": "Diplomski sveučilišni studij Indologija - dvopredmetni studij",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0255": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Informacijske znanosti, smjer: Informatika - nastavnički i istarživački, Informatologija, Arhivistika, Bibliotekarstvo, Muzeologija i upravljanje baštinom",
+   "puni_naziv": "Diplomski sveučilišni studij Informacijske znanosti, smjer: Informatika - nastavnički i istarživački, Informatologija, Arhivistika, Bibliotekarstvo, Muzeologija i upravljanje baštinom",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0256": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Judaistika- dvopredmetni studij",
+   "puni_naziv": "Diplomski sveučilišni studij Judaistika- dvopredmetni studij",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0257": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Južnoslavenski jezici i književnost - dvopredmetni studij, smjer: nastavnički, jezično-prevoditeljski, književno-interkulturalni",
+   "puni_naziv": "Diplomski sveučilišni studij Južnoslavenski jezici i književnost - dvopredmetni studij, smjer: nastavnički, jezično-prevoditeljski, književno-interkulturalni",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0258": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Komparativna književnost - jednopredmetni i dvopredmetni studij",
+   "puni_naziv": "Diplomski sveučilišni studij Komparativna književnost - jednopredmetni i dvopredmetni studij",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0259": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Kroatistika; smjer: nastavnički - jednopredmetni studij, jezikoslovni - dvopredmetni studij, književni - dvopredmetni studij",
+   "puni_naziv": "Diplomski sveučilišni studij Kroatistika; smjer: nastavnički - jednopredmetni studij, jezikoslovni - dvopredmetni studij, književni - dvopredmetni studij",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0260": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Latinski jezik i književnost - dvopredmetni studij, smjer: nastavnički, znanstveni",
+   "puni_naziv": "Diplomski sveučilišni studij Latinski jezik i književnost - dvopredmetni studij, smjer: nastavnički, znanstveni",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0261": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Lingvistika - dvopredmetni studij, smjer: opći, poredbeni, računalni, primijenjeni, kognitivni",
+   "puni_naziv": "Diplomski sveučilišni studij Lingvistika - dvopredmetni studij, smjer: opći, poredbeni, računalni, primijenjeni, kognitivni",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0262": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Pedagogija - jednopredmetni i dvopredmetni studij",
+   "puni_naziv": "Diplomski sveučilišni studij Pedagogija - jednopredmetni i dvopredmetni studij",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0263": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Poljski jezik i književnost - dvopredmetni studij, smjer: lingvistički, kulturološki",
+   "puni_naziv": "Diplomski sveučilišni studij Poljski jezik i književnost - dvopredmetni studij, smjer: lingvistički, kulturološki",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0264": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Portugalski jezik i književnost - dvopredmetni studij",
+   "puni_naziv": "Diplomski sveučilišni studij Portugalski jezik i književnost - dvopredmetni studij",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0265": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Povijest - jednopredmetni studij, smjerovi; istraživački i nastavnički",
+   "puni_naziv": "Diplomski sveučilišni studij Povijest - jednopredmetni studij, smjerovi; istraživački i nastavnički",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0266": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Povijest umjetnosti, smjerovi: istraživački (jednopredmetni i dvopredmetni), nastavnički ( dvopredmetni)",
+   "puni_naziv": "Diplomski sveučilišni studij Povijest umjetnosti, smjerovi: istraživački (jednopredmetni i dvopredmetni), nastavnički ( dvopredmetni)",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0267": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Psihologija - jednopredmetni studij",
+   "puni_naziv": "Diplomski sveučilišni studij Psihologija - jednopredmetni studij",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0268": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Rumunjski jezik i književnost - dvopredmetni studij, smjer: opći",
+   "puni_naziv": "Diplomski sveučilišni studij Rumunjski jezik i književnost - dvopredmetni studij, smjer: opći",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0269": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Ruski jezik i književnost - dvopredmetni studij, smjer: nastavnički, prevoditeljski",
+   "puni_naziv": "Diplomski sveučilišni studij Ruski jezik i književnost - dvopredmetni studij, smjer: nastavnički, prevoditeljski",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0270": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Slovački jezik i književnost - dvopredmetni studij, smjer: nastavnički, prevoditeljsko-kulturološki",
+   "puni_naziv": "Diplomski sveučilišni studij Slovački jezik i književnost - dvopredmetni studij, smjer: nastavnički, prevoditeljsko-kulturološki",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0271": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Sociologija; smjer: znanstveni -jednopredmetni i dvopredmetni studij, nastavnički - dvopredmetni studij",
+   "puni_naziv": "Diplomski sveučilišni studij Sociologija; smjer: znanstveni -jednopredmetni i dvopredmetni studij, nastavnički - dvopredmetni studij",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0272": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Španjolski jezik i književnost - dvopredmetni studij, smjer: nastavnički, prevoditeljski, znanstveni",
+   "puni_naziv": "Diplomski sveučilišni studij Španjolski jezik i književnost - dvopredmetni studij, smjer: nastavnički, prevoditeljski, znanstveni",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0273": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Švedski jezik i kultura - dvopredmetni studij; smjer: lingvistički, prevoditeljski",
+   "puni_naziv": "Diplomski sveučilišni studij Švedski jezik i kultura - dvopredmetni studij; smjer: lingvistički, prevoditeljski",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0274": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Talijanistika - jednopredmetni i dvopredmetni studij; smjer: nastavnički, jezikoslovno-kulturološki, književno-kulturološki",
+   "puni_naziv": "Diplomski sveučilišni studij Talijanistika - jednopredmetni i dvopredmetni studij; smjer: nastavnički, jezikoslovno-kulturološki, književno-kulturološki",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0275": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Turkologija - dvopredmetni studij",
+   "puni_naziv": "Diplomski sveučilišni studij Turkologija - dvopredmetni studij",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0276": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Ukrajinski jezik i književnost - dvopredmetni studij, smjer: nastavnički, prevoditeljsko-kulturološki",
+   "puni_naziv": "Diplomski sveučilišni studij Ukrajinski jezik i književnost - dvopredmetni studij, smjer: nastavnički, prevoditeljsko-kulturološki",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0277": [
+  {
+   "fakultet": "Fakultet hrvatskih studija",
+   "program": "Filozofija - dvopredmetni studij",
+   "puni_naziv": "Diplomski sveučilišni studij Filozofija - dvopredmetni studij",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0278": [
+  {
+   "fakultet": "Fakultet hrvatskih studija",
+   "program": "Komunikologija",
+   "puni_naziv": "Diplomski sveučilišni studij Komunikologija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0279": [
+  {
+   "fakultet": "Fakultet hrvatskih studija",
+   "program": "Kroatologija - jednopredmetni studij; smjer: nastavnički, znanstveni",
+   "puni_naziv": "Diplomski sveučilišni studij Kroatologija - jednopredmetni studij; smjer: nastavnički, znanstveni",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0280": [
+  {
+   "fakultet": "Fakultet hrvatskih studija",
+   "program": "Povijest - jednopredmetni studij; smjer: znanstveni",
+   "puni_naziv": "Diplomski sveučilišni studij Povijest - jednopredmetni studij; smjer: znanstveni",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0281": [
+  {
+   "fakultet": "Fakultet hrvatskih studija",
+   "program": "Psihologija - jednopredmetni studij",
+   "puni_naziv": "Diplomski sveučilišni studij Psihologija - jednopredmetni studij",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0282": [
+  {
+   "fakultet": "Fakultet hrvatskih studija",
+   "program": "Sociologija - jednopredmetni i dvopredmetni studij",
+   "puni_naziv": "Diplomski sveučilišni studij Sociologija - jednopredmetni i dvopredmetni studij",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0283": [
+  {
+   "fakultet": "Fakultet hrvatskih studija",
+   "program": "Hrvatskli latinitet",
+   "puni_naziv": "Diplomski sveučilišni studij Hrvatskli latinitet",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0284": [
+  {
+   "fakultet": "Filozofski fakultet Družbe Isusove",
+   "program": "Filozofije",
+   "puni_naziv": "Diplomski sveučilišni studij Filozofije",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0285": [
+  {
+   "fakultet": "Filozofski fakultet Družbe Isusove",
+   "program": "Religijske znanosti; smjer: nastavnički, znanstveni",
+   "puni_naziv": "Diplomski sveučilišni studij Religijske znanosti; smjer: nastavnički, znanstveni",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0286": [
+  {
+   "fakultet": "Akademija dramske umjetnosti",
+   "program": "Gluma",
+   "puni_naziv": "Diplomski sveučilišni studij Gluma",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0287": [
+  {
+   "fakultet": "Akademija dramske umjetnosti",
+   "program": "Kazališna režija i radiofonija",
+   "puni_naziv": "Diplomski sveučilišni studij Kazališna režija i radiofonija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0288": [
+  {
+   "fakultet": "Akademija dramske umjetnosti",
+   "program": "Dramaturgija",
+   "puni_naziv": "Diplomski sveučilišni studij Dramaturgija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0289": [
+  {
+   "fakultet": "Akademija dramske umjetnosti",
+   "program": "Filmska i TV režija",
+   "puni_naziv": "Diplomski sveučilišni studij Filmska i TV režija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0290": [
+  {
+   "fakultet": "Akademija dramske umjetnosti",
+   "program": "Snimanje",
+   "puni_naziv": "Diplomski sveučilišni studij Snimanje",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0291": [
+  {
+   "fakultet": "Akademija dramske umjetnosti",
+   "program": "Montaža",
+   "puni_naziv": "Diplomski sveučilišni studij Montaža",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0292": [
+  {
+   "fakultet": "Akademija dramske umjetnosti",
+   "program": "Produkcija",
+   "puni_naziv": "Diplomski sveučilišni studij Produkcija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0293": [
+  {
+   "fakultet": "Akademija likovnih umjetnosti",
+   "program": "Likovna kultura; smjer: nastavnički",
+   "puni_naziv": "Diplomski sveučilišni studij Likovna kultura; smjer: nastavnički",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0294": [
+  {
+   "fakultet": "Akademija likovnih umjetnosti",
+   "program": "Animirani film i novi mediji",
+   "puni_naziv": "Diplomski sveučilišni studij Animirani film i novi mediji",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0295": [
+  {
+   "fakultet": "Akademija likovnih umjetnosti",
+   "program": "Grafika, smjerovi: Grafika, primijenjena grafika",
+   "puni_naziv": "Diplomski sveučilišni studij Grafika, smjerovi: Grafika, primijenjena grafika",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0296": [
+  {
+   "fakultet": "Akademija likovnih umjetnosti",
+   "program": "Kiparstvo",
+   "puni_naziv": "Diplomski sveučilišni studij Kiparstvo",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0297": [
+  {
+   "fakultet": "Akademija likovnih umjetnosti",
+   "program": "Slikarstvo",
+   "puni_naziv": "Diplomski sveučilišni studij Slikarstvo",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0298": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Kompozicije",
+   "puni_naziv": "Diplomski sveučilišni studij Kompozicije",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0299": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Elektroničke kompozicije",
+   "puni_naziv": "Diplomski sveučilišni studij Elektroničke kompozicije",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0300": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Primijenjene kompozicije",
+   "puni_naziv": "Diplomski sveučilišni studij Primijenjene kompozicije",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0301": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Teorije glazbe",
+   "puni_naziv": "Diplomski sveučilišni studij Teorije glazbe",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0302": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Historijske muzikologije",
+   "puni_naziv": "Diplomski sveučilišni studij Historijske muzikologije",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0303": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Sveučičišni studij Sistematske muzikologije",
+   "puni_naziv": "Diplomski sveučičišni studij Sistematske muzikologije",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0304": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Etnomuzikologije",
+   "puni_naziv": "Diplomski sveučilišni studij Etnomuzikologije",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0305": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Muzikologije (dvopredmetni nastavnički studij)",
+   "puni_naziv": "Diplomski sveučilišni studij Muzikologije (dvopredmetni nastavnički studij)",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0306": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Dirigiranja",
+   "puni_naziv": "Diplomski sveučilišni studij Dirigiranja",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0307": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Zborskog dirigiranja",
+   "puni_naziv": "Diplomski sveučilišni studij Zborskog dirigiranja",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0308": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Pjevanja - izvođački smjer (operni i koncertni modul)",
+   "puni_naziv": "Diplomski sveučilišni studij Pjevanja - izvođački smjer (operni i koncertni modul)",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0309": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Pjevanja - pedagoški smjer",
+   "puni_naziv": "Diplomski sveučilišni studij Pjevanja - pedagoški smjer",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0310": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Klavira - izvođački smjer",
+   "puni_naziv": "Diplomski sveučilišni studij klavira - izvođački smjer",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0311": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Klavira - pedagoško izvođački smjer",
+   "puni_naziv": "Diplomski sveučilišni studij klavira - pedagoško izvođački smjer",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0312": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Čembalo - izvođački smjer",
+   "puni_naziv": "Čembalo - izvođački smjer",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0313": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Orgulja - izvođački smjer",
+   "puni_naziv": "Diplomski sveučilišni studij orgulja - izvođački smjer",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0314": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Orgulja - pedagoško izvođački smjer",
+   "puni_naziv": "Diplomski sveučilišni studij orgulja - pedagoško izvođački smjer",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0315": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Harfe - izvođački smjer",
+   "puni_naziv": "Diplomski sveučilišni studij Harfe - izvođački smjer",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0316": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Udaraljke - izvođački smjer",
+   "puni_naziv": "Diplomski sveučilišni studij Udaraljke - izvođački smjer",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0317": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Studiji gudačkih instrumenata i gitare: izvođački smjer",
+   "puni_naziv": "Diplomski sveučilišni studiji gudačkih instrumenata i gitare: izvođački smjer",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0318": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Studiji puhačkih instrumenata - izvođački smjer",
+   "puni_naziv": "Diplomski sveučilišni studiji puhačkih instrumenata - izvođački smjer",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0319": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Harfe - pedagoško izvođački smjer",
+   "puni_naziv": "Diplomski sveučilišni studij Harfe - pedagoško izvođački smjer",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0320": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Udaraljke - pedagoško izvođački smjer",
+   "puni_naziv": "Diplomski sveučilišni studij Udaraljke - pedagoško izvođački smjer",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0321": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Studiji gudačkih instrumenata i gitare: pedagoško izvođački",
+   "puni_naziv": "Diplomski sveučilišni studiji gudačkih instrumenata i gitare: pedagoško izvođački",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0322": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Studiji puhačkih instrumenata - pedagoško izvođački",
+   "puni_naziv": "Diplomski sveučilišni studiji puhačkih instrumenata - pedagoško izvođački",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0323": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Glazbene pedagogije",
+   "puni_naziv": "Diplomski sveučilišni studij glazbene pedagogije",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0324": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Glazbene pedagogije - dvopredmetni nastavnički studij",
+   "puni_naziv": "Diplomski sveučilišni studij glazbene pedagogije - dvopredmetni nastavnički studij",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0325": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Gitara; smjer: solistički, komorna glazba",
+   "puni_naziv": "Diplomski sveučilišni studij Gitara; smjer: solistički, komorna glazba",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0326": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Klavir; smjer: solistički, vokalna pratnja, instrumentalna pratnja",
+   "puni_naziv": "Diplomski sveučilišni studij Klavir; smjer: solistički, vokalna pratnja, instrumentalna pratnja",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0327": [
+  {
+   "fakultet": "Teološki fakultet \"Matija Vlačić Ilirik\" s pravom javnosti",
+   "program": "Protestantska teologija",
+   "puni_naziv": "Preddiplomski sveučiilšni studij Protestantska teologija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0328": [
+  {
+   "fakultet": "Teološki fakultet \"Matija Vlačić Ilirik\" s pravom javnosti",
+   "program": "Protestantska teologija",
+   "puni_naziv": "Diplomski sveučiilšni studij Protestantska teologija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0330": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Poslovna ekonomija na engleskom jeziku",
+   "puni_naziv": "Preddiplomski sveučilišni studij Poslovna ekonomija na engleskom jeziku",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0331": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Teorija glazbe",
+   "puni_naziv": "Preddiplomski sveučilišni studij Teorija glazbe",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0332": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Kompozicija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Kompozicija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0333": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Elektronička kompozicija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Elektronička kompozicija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0334": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Primijenjena kompozicija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Primijenjena kompozicija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0335": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Muzikologija dvopredmetni nastavnički studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Muzikologija dvopredmetni nastavnički studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0336": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Muzikologija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Muzikologija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0337": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Dirigiranje",
+   "puni_naziv": "Preddiplomski sveučilišni studij Dirigiranje",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0338": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Zborsko dirigiranje",
+   "puni_naziv": "Preddiplomski sveučilišni studij Zborsko dirigiranje",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0339": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Udaraljke",
+   "puni_naziv": "Preddiplomski sveučilišni studij Udaraljke",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0340": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Harfa",
+   "puni_naziv": "Preddiplomski sveučilišni studij Harfa",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0341": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Pjevanje",
+   "puni_naziv": "Preddiplomski sveučilišni studij Pjevanje",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0342": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Klavir",
+   "puni_naziv": "Preddiplomski sveučilišni studij Klavir",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0343": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Čembalo",
+   "puni_naziv": "Preddiplomski sveučilišni studij Čembalo",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0344": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Orgulje",
+   "puni_naziv": "Preddiplomski sveučilišni studij Orgulje",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0345": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Violina",
+   "puni_naziv": "Preddiplomski sveučilišni studij Violina",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0346": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Viola",
+   "puni_naziv": "Preddiplomski sveučilišni studij Viola",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0347": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Violončelo",
+   "puni_naziv": "Preddiplomski sveučilišni studij Violončelo",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0348": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Kontrabas",
+   "puni_naziv": "Preddiplomski sveučilišni studij Kontrabas",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0349": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Gitara",
+   "puni_naziv": "Preddiplomski sveučilišni studij Gitara",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0350": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Flauta",
+   "puni_naziv": "Preddiplomski sveučilišni studij Flauta",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0351": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Oboa",
+   "puni_naziv": "Preddiplomski sveučilišni studij Oboa",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0352": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Klarinet",
+   "puni_naziv": "Preddiplomski sveučilišni studij Klarinet",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0353": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Fagot",
+   "puni_naziv": "Preddiplomski sveučilišni studij Fagot",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0354": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Saksofon",
+   "puni_naziv": "Preddiplomski sveučilišni studij Saksofon",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0355": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Rog",
+   "puni_naziv": "Preddiplomski sveučilišni studij Rog",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0356": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Truba",
+   "puni_naziv": "Preddiplomski sveučilišni studij Truba",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0357": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Trombon",
+   "puni_naziv": "Preddiplomski sveučilišni studij Trombon",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0358": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Tuba",
+   "puni_naziv": "Preddiplomski sveučilišni studij Tuba",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0359": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Glazbena pedagogija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Glazbena pedagogija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0360": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Glazbena pedagogija -dvopredmetni studij",
+   "puni_naziv": "Preddiplomski sveučilišni studij Glazbena pedagogija -dvopredmetni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0361": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Pjevanje",
+   "puni_naziv": "Preddiplomski sveučilišni studij Pjevanje",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0362": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Klavir",
+   "puni_naziv": "Preddiplomski sveučilišni studij Klavir",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0363": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Gitara",
+   "puni_naziv": "Preddiplomski sveučilišni studij Gitara",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0364": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Teorija glazbe",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Teorija glazbe",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0365": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Muzikologija dvopredmetni",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Muzikologija dvopredmetni",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0366": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Muzikologija; smjer: Muzikologija, Etnomuzikologija",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Muzikologija; smjer: Muzikologija, Etnomuzikologija",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0367": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Dirigiranje; smjer: Dirigiranje, Zborsko pjevanje",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Dirigiranje; smjer: Dirigiranje, Zborsko pjevanje",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0368": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste; smjer Udaraljke",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste; smjer Udaraljke",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0369": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste; smjer Harfa",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste; smjer Harfa",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0370": [
+  {
+   "fakultet": "Katolički bogoslovni fakultet",
+   "program": "Teologija",
+   "puni_naziv": "Stručni studij Teologija",
+   "razina": "Preddiplomski studij"
+  },
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Pjevanje",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Pjevanje",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0371": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste; smjer Klavir",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste; smjer Klavir",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0372": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste; smjer Čembalo",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste; smjer Čembalo",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0373": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste; smjer Orgulje",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste; smjer Orgulje",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0374": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste; smjer Violina",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste; smjer Violina",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0375": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste; smjer Viola",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste; smjer Viola",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0376": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste; smjer Violončelo",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste; smjer Violončelo",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0377": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste; smjer Kontrabas",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste; smjer Kontrabas",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0378": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste; smjer Gitara",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste; smjer Gitara",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0379": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste; smjer Flauta",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste; smjer Flauta",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0380": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste; smjer Oboa",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste; smjer Oboa",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0381": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste; smjer Klatrinet",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste; smjer Klatrinet",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0382": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste; smjer Fagot",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste; smjer Fagot",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0383": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste;smjer Saksofon",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste;smjer Saksofon",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0384": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste;smjer Rog",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste;smjer Rog",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0385": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste;smjer Truba",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste;smjer Truba",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0386": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste;smjer Trombon",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste;smjer Trombon",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0387": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste; smjer Tuba",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste; smjer Tuba",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0388": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Glazbena pedagogija",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Glazbena pedagogija",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0389": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Glazbena pedagogija -dvopredmetno",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Glazbena pedagogija -dvopredmetno",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0390": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Kompozicija",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Kompozicija",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0391": [
+  {
+   "fakultet": "Kineziološki fakultet",
+   "program": "Kineziologije",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij kineziologije",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0393": [
+  {
+   "fakultet": "Muzička akademija",
+   "program": "Instrumentaliste; smjer: Flauta, Oboa, Klarinet, Saksofon, Fagot, Rog, Truba, Trombon, Tuba, Udaraljke, Harfa, Violina, Viola, Violončelo, Kontrabas, Gitara, Klavir, Orgulje, Čembalo",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Studij za instrumentaliste; smjer: Flauta, Oboa, Klarinet, Saksofon, Fagot, Rog, Truba, Trombon, Tuba, Udaraljke, Harfa, Violina, Viola, Violončelo, Kontrabas, Gitara, Klavir, Orgulje, Čembalo",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0394": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Ekonomija",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Ekonomija",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0395": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Poslovna ekonomija",
+   "puni_naziv": "Integrirani preddiplomski i diplomski sveučilišni studij Poslovna ekonomija",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0396": [
+  {
+   "fakultet": "Kineziološki fakultet",
+   "program": "Izobrazba trenera",
+   "puni_naziv": "Preddiplomski stručni studij Izobrazba trenera",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0397": [
+  {
+   "fakultet": "Katolički bogoslovni fakultet",
+   "program": "Religijska pedagogija i katehetika - dvopredmetno",
+   "puni_naziv": "Preddiplomski sveučilišni studij Religijska pedagogija i katehetika - dvopredmetno",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0398": [
+  {
+   "fakultet": "Katolički bogoslovni fakultet",
+   "program": "Religijska pedagogija i katehetika",
+   "puni_naziv": "Preddiplomski sveučilišni studij Religijska pedagogija i katehetika",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0399": [
+  {
+   "fakultet": "Sveučilište u Zagrebu",
+   "program": "Inženjerstvo na engleskom jeziku",
+   "puni_naziv": "Preddiplomski sveučilišni studij Inženjerstvo na engleskom jeziku",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0400": [
+  {
+   "fakultet": "Sveučilište u Zagrebu",
+   "program": "Vojno inženjerstvo",
+   "puni_naziv": "Preddiplomski sveučilišni studij Vojno inženjerstvo",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0401": [
+  {
+   "fakultet": "Sveučilište u Zagrebu",
+   "program": "Vojno vođenje i upravljanje",
+   "puni_naziv": "Preddiplomski sveučilišni studij Vojno vođenje i upravljanje",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0402": [
+  {
+   "fakultet": "Sveučilište u Zagrebu",
+   "program": "Energetske učinkovitosti i obnovljivih izvora u Šibeniku",
+   "puni_naziv": "Dislocirani preddiplomski sveučilišni studij Energetske učinkovitosti i obnovljivih izvora u Šibeniku",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0403": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Geografija; smjer: istraživački",
+   "puni_naziv": "Diplomski sveučilišni studij Geografija; smjer: istraživački",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0404": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "Geografija; smjer: nastavnički",
+   "puni_naziv": "Diplomski sveučilišni studij Geografija; smjer: nastavnički",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0405": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Enviroment, agriculture and resource management (Okoliš, poljoprivreda i gospodarenje resursima)",
+   "puni_naziv": "Diplomski studij Enviroment, agriculture and resource management (Okoliš, poljoprivreda i gospodarenje resursima)",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0406": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Poslovna ekonomija, smjer: Menadžerska informatika na engleskom jeziku (Managerial informatics)",
+   "puni_naziv": "Diplomski sveučilišni studij Poslovna ekonomija, smjer: Menadžerska informatika na engleskom jeziku (Managerial informatics)",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0407": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Ekonomika poduzetništva",
+   "puni_naziv": "Specijalistički diplomski stručni studij Ekonomika poduzetništva",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0408": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Poslovna ekonomija; smjer Management na engleskom jeziku",
+   "puni_naziv": "Diplomski sveučilišni studij Poslovna ekonomija; smjer Management na engleskom jeziku",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0409": [
+  {
+   "fakultet": "Fakultet političkih znanosti",
+   "program": "Na engleskom jeziku Master of European Studies",
+   "puni_naziv": "Diplomski sveučilišni studij na engleskom jeziku Master of European Studies",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0410": [
+  {
+   "fakultet": "Kineziološki fakultet",
+   "program": "Izobrazba trenera",
+   "puni_naziv": "Izvanredni specijalistički diplomski stručni studij Izobrazba trenera",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0411": [
+  {
+   "fakultet": "Učiteljski fakultet",
+   "program": "Rani i predškolski odgoj i obrazovanje (redovni)",
+   "puni_naziv": "Diplomski sveučilišni studij Rani i predškolski odgoj i obrazovanje (redovni)",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0412": [
+  {
+   "fakultet": "Pravni fakultet",
+   "program": "Javna uprava",
+   "puni_naziv": "Specijalistički diplomski stručni studij Javna uprava",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0413": [
+  {
+   "fakultet": "Filozofski fakultet",
+   "program": "Romistika",
+   "puni_naziv": "Diplomski sveučilišni studij Romistika",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0414": [
+  {
+   "fakultet": "Katolički bogoslovni fakultet",
+   "program": "Religijska pedagogija i katehetika",
+   "puni_naziv": "Diplomski sveučilišni studij Religijska pedagogija i katehetika",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0415": [
+  {
+   "fakultet": "Katolički bogoslovni fakultet",
+   "program": "Religijska pedagogija i katehetika - dvopredmetno",
+   "puni_naziv": "Diplomski sveučilišni studij Religijska pedagogija i katehetika - dvopredmetno",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0416": [
+  {
+   "fakultet": "Pravni fakultet",
+   "program": "Javna uprava",
+   "puni_naziv": "Stručni studij Javna uprava",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0417": [
+  {
+   "fakultet": "Pravni fakultet",
+   "program": "Porezni studij",
+   "puni_naziv": "Stručni studij Porezni studij",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0418": [
+  {
+   "fakultet": "Akademija dramske umjetnosti",
+   "program": "Suvremeni ples; smjer: izvedbeni",
+   "puni_naziv": "Preddiplomski sveučilišni studij Suvremeni ples; smjer: izvedbeni",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0419": [
+  {
+   "fakultet": "Akademija dramske umjetnosti",
+   "program": "Suvremeni ples; smjer: nastavnički",
+   "puni_naziv": "Preddiplomski sveučilišni studij Suvremeni ples; smjer: nastavnički",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0420": [
+  {
+   "fakultet": "Akademija dramske umjetnosti",
+   "program": "Baletna pedagogija",
+   "puni_naziv": "Preddiplomski sveučilišni studij Baletna pedagogija",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0421": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Ekonomika energije i okoliša",
+   "puni_naziv": "Specijalistički diplomski stručni studij Ekonomika energije i okoliša",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0422": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Poslovna ekonomija; smjer Trgovina na engleskom",
+   "puni_naziv": "Diplomski sveučilišni studij Poslovna ekonomija; smjer Trgovina na engleskom",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0423": [
+  {
+   "fakultet": "Fakultet elektrotehnike i računarstva",
+   "program": "Energetske učinkovitosti i obnovljivih izvora u Šibeniku",
+   "puni_naziv": "preddiplomski Studij energetske učinkovitosti i obnovljivih izvora u Šibeniku",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0424": [
+  {
+   "fakultet": "HVU \"dr. Franjo Tuđman\"",
+   "program": "Vojno inženjerstvo",
+   "puni_naziv": "preddiplomski studij Vojno inženjerstvo",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0425": [
+  {
+   "fakultet": "HVU \"dr. Franjo Tuđman\"",
+   "program": "Vojno vođenje i upravljanje",
+   "puni_naziv": "preddiplomski studij Vojno vođenje i upravljanje",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0426": [
+  {
+   "fakultet": "HVU \"dr. Franjo Tuđman\"",
+   "program": "Vojno inženjerstvo",
+   "puni_naziv": "diplomski studij Vojno inženjerstvo",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0427": [
+  {
+   "fakultet": "HVU \"dr. Franjo Tuđman\"",
+   "program": "Vojno vođenje i upravljanje",
+   "puni_naziv": "diplomski studij Vojno vođenje i upravljanje",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0428": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Ekonomija na engleskom jeziku (Bachelor Degree in Economics)",
+   "puni_naziv": "Preddiplomski sveučilišni studij Ekonomija na engleskom jeziku (Bachelor Degree in Economics)",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0429": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Marketing na engleskom jeziku",
+   "puni_naziv": "Diplomski sveučilišni studij Marketing na engleskom jeziku",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0430": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Trade and International Business na engleskom jeziku",
+   "puni_naziv": "Diplomski sveučilišni studij Trade and International Business na engleskom jeziku",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0431": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Leadership na engleskom jeziku",
+   "puni_naziv": "Diplomski sveučilišni studij Leadership na engleskom jeziku",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0432": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Economics na engleskom jeziku",
+   "puni_naziv": "Diplomski sveučilišni studij Economics na engleskom jeziku",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0433": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Ekonomika energije i okoliša",
+   "puni_naziv": "Specijalistički diplomski stručni studij Ekonomika energije i okoliša",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0434": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Elektroničko poslovanje u privatnom i javnom sektoru",
+   "puni_naziv": "Specijalistički diplomski stručni studij Elektroničko poslovanje u privatnom i javnom sektoru",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0435": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Menadžment i marketing maloprodaje",
+   "puni_naziv": "Specijalistički diplomski stručni studij Menadžment i marketing maloprodaje",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0436": [
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Digitalni marketing",
+   "puni_naziv": "Specijalistički diplomski stručni studij Digitalni marketing",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0437": [
+  {
+   "fakultet": "Katolički bogoslovni fakultet",
+   "program": "Crkvena glazba - glazbena pedagogija",
+   "puni_naziv": "Diplomski studij Crkvena glazba - glazbena pedagogija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0438": [
+  {
+   "fakultet": "Katolički bogoslovni fakultet",
+   "program": "Crkvena glazba - gregorijanika",
+   "puni_naziv": "Diplomski studij Crkvena glazba - gregorijanika",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0439": [
+  {
+   "fakultet": "Fakultet šumarstva i drvne tehnologije",
+   "program": "Drvna tehnologija Vinkovci",
+   "puni_naziv": "Prijediplomski stručni studij Drvna tehnologija Vinkovci",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0440": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Mediteranska poljoprivreda",
+   "puni_naziv": "Diplomski studij Mediteranska poljoprivreda",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0441": [
+  {
+   "fakultet": "Agronomski fakultet",
+   "program": "Obnovljivi izvori energije u poljoprivredi",
+   "puni_naziv": "Diplomski studij Obnovljivi izvori energije u poljoprivredi",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0442": [
+  {
+   "fakultet": "Fakultet hrvatskih studija",
+   "program": "Demografija i hrvatsko iseljeništvo",
+   "puni_naziv": "integrirani prijediplomski i diplomski studij Demografija i hrvatsko iseljeništvo",
+   "razina": "Integrirani studij"
+  }
+ ],
+ "0443": [
+  {
+   "fakultet": "Metalurški fakultet",
+   "program": "Sigurnost, zadravlje na radu i radni okoliš",
+   "puni_naziv": "Prijediplomski studij Sigurnost, zadravlje na radu i radni okoliš",
+   "razina": "Preddiplomski studij"
+  }
+ ],
+ "0444": [
+  {
+   "fakultet": "Prirodoslovno-matematički fakultet",
+   "program": "BioMedMath",
+   "puni_naziv": "Diplomski studij BioMedMath",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0445": [
+  {
+   "fakultet": "Fakultet strojarstva i brodogradnje",
+   "program": "Mehatronike i robotike",
+   "puni_naziv": "Preddiplomski sveučilišni studij Mehatronike i robotike",
+   "razina": "Preddiplomski studij"
+  },
+  {
+   "fakultet": "Ekonomski fakultet",
+   "program": "Računovodstvo, financijsko izvještavanje i revizija",
+   "puni_naziv": "Stručni diplomski studij Računovodstvo, financijsko izvještavanje i revizija",
+   "razina": "Diplomski studij"
+  }
+ ],
+ "0446": [
+  {
+   "fakultet": "Fakultet strojarstva i brodogradnje",
+   "program": "Mehatronike i robotike",
+   "puni_naziv": "Diplomski sveučilišni studij Mehatronike i robotike",
+   "razina": "Diplomski studij"
+  }
+ ]
+}

@@ -465,8 +465,8 @@ def safe_file_part(text, max_len=70):
 
 
 def report_file_name(form_type, info):
-    parts = [safe_file_part(info.get(k, "")) for k in REPORTS[form_type]["file_name"]]
-    return " - ".join(p for p in parts if p) + ".pdf"
+    parts = [safe_file_part(info[k]) for k in REPORTS[form_type]["file_name"] if str(info.get(k) or "").strip()]
+    return " - ".join(parts or ["bez_naziva"]) + ".pdf"
 
 
 def build_report(form_type, df, info, semester, academic_year, report_date=None):
@@ -498,8 +498,14 @@ def group_surveys(form_type, df_all):
         return [], 0
     incomplete = (df[required] == "").any(axis=1)
     groups = []
+    extra = [k for k in REPORTS[form_type]["file_name"] if k not in keys]  # npr. kod studija za ime datoteke
     for values, part in df[~incomplete].groupby(keys, sort=True):
-        groups.append((dict(zip(keys, values)), part.reset_index(drop=True)))
+        info = dict(zip(keys, values))
+        for k in extra:
+            filled = part[k].dropna().astype(str).str.strip() if k in part.columns else pd.Series(dtype=str)
+            filled = filled[filled != ""]
+            info[k] = filled.mode().iloc[0] if len(filled) else ""
+        groups.append((info, part.reset_index(drop=True)))
     return groups, int(incomplete.sum())
 
 
@@ -510,7 +516,7 @@ for _form in reports_study.LEVELS:
     REPORTS[_form] = {
         "build": reports_study.make_builder(_form),
         "group_by": ["Fakultet", "Studijski program"],  # Jedan izvještaj = jedan studijski program
-        "file_name": ["Studijski program"],
+        "file_name": ["Kod studijskog programa", "Studijski program"],  # npr. "0061 - Biotehnologija.pdf"
         "needs_semester": False,
         "year_label": "Akademska godina završetka studija",
         "year_offset": -1,  # Izvještaj se radi za prošlu akademsku godinu

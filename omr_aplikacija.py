@@ -1,5 +1,7 @@
 import io
 import os
+import re
+from collections import Counter
 import cv2
 import numpy as np
 import pandas as pd
@@ -9,6 +11,7 @@ from pdfminer.high_level import extract_pages
 from pdfminer.layout import LTTextContainer, LTChar
 
 import drive_storage as drive
+import programi
 import reports
 
 # ==============================================================================
@@ -56,8 +59,10 @@ CONFIG = {
     "Preddiplomski studij": {
         "pdf": "Anketa preddiplomski.pdf",
         "scan_mode": "A3_TWO_IMAGES",  # 1. slika: desno str.1 | 2. slika: lijevo str.2, desno str.3
-        "info_fields": [{"name": "Fakultet"}, {"name": "Studijski program"}],
-        "batch_label": ["Studijski program"],
+        "info_fields": [{"name": "Kod studijskog programa", "code": True, "optional": True}, {"name": "Fakultet"}, {"name": "Studijski program"}],
+        "batch_label": ["Kod studijskog programa", "Studijski program"],
+        # Kod studija koji student zacrni na 1. stranici (desno je samo tiskani primjer "kód 2209")
+        "code_grids": [{"column": "Očitani kod", "page": 0, "rows": [1, 2, 3, 4], "part": "left", "program": True}],
         "columns": [
             "Spol\n(muško = 1)\n(žensko = 0)", "Ocjena preddipl", "Vrsta studiranja",
             "Prvi izbor", "Nastavak studija",
@@ -99,8 +104,13 @@ CONFIG = {
     "Diplomski studij": {
         "pdf": "Anketa diplomski.pdf",
         "scan_mode": "A4_TWO_PAGES",  # Dvije A4 slike po anketi: 1. stranica pa 2. stranica
-        "info_fields": [{"name": "Fakultet"}, {"name": "Studijski program"}],
-        "batch_label": ["Studijski program"],
+        "info_fields": [{"name": "Kod studijskog programa", "code": True, "optional": True}, {"name": "Fakultet"}, {"name": "Studijski program"}],
+        "batch_label": ["Kod studijskog programa", "Studijski program"],
+        # 3. Kód diplomskog studija (lijevo) i kód preddiplomskog studija (desno) na 1. stranici
+        "code_grids": [
+            {"column": "Očitani kod", "page": 0, "rows": [1, 2, 3, 4], "part": "left", "program": True},
+            {"column": "Očitani kod preddipl.", "page": 0, "rows": [1, 2, 3, 4], "part": "right"},
+        ],
         "columns": [
             "Spol\n(muško = 1)\n(žensko = 0)", "Ocjena Dipl", "Ocjena Preddipl",
             "Prvi izbor", "Nastavak studija",
@@ -133,8 +143,10 @@ CONFIG = {
     "Integrirani studij": {
         "pdf": "Anketa integrirani.pdf",
         "scan_mode": "A3_TWO_IMAGES",
-        "info_fields": [{"name": "Fakultet"}, {"name": "Studijski program"}],
-        "batch_label": ["Studijski program"],
+        "info_fields": [{"name": "Kod studijskog programa", "code": True, "optional": True}, {"name": "Fakultet"}, {"name": "Studijski program"}],
+        "batch_label": ["Kod studijskog programa", "Studijski program"],
+        # Kod studija koji student zacrni na 1. stranici (desno je samo tiskani primjer "kód 2209")
+        "code_grids": [{"column": "Očitani kod", "page": 0, "rows": [1, 2, 3, 4], "part": "left", "program": True}],
         "columns": [
             "Spol\n(muško = 1)\n(žensko = 0)", "Ocjena studij", "Prvi izbor",
             *[f"B{i}" for i in range(1, 16)],
@@ -250,10 +262,32 @@ def bubble_radius(scale):
 
 
 def question_coords(pages_rows, page_idx, row_spec):
-    """Koordinate kružića jednog pitanja (vodoravni redak ili okomito složeni kružići)."""
+    """Koordinate kružića jednog pitanja (vodoravni redak, dio retka ili okomito složeni kružići)."""
+    if isinstance(row_spec, tuple):  # (redak, od, do) - dio retka, npr. lijeva mreža za kod studija
+        row, start, end = row_spec
+        return pages_rows[page_idx][row][start:end]
     if isinstance(row_spec, list):
         return [pages_rows[page_idx][r][0] for r in row_spec]
     return pages_rows[page_idx][row_spec]
+
+
+def code_questions(cfg):
+    """Retci za znamenke koda studija (4 retka po kodu, kružići 0-9) - čitaju se ispred pitanja."""
+    specs = []
+    for grid in cfg.get("code_grids", []):
+        start, end = (0, 10) if grid["part"] == "left" else (10, 20)
+        specs += [(grid["page"], (r, start, end), list(range(10))) for r in grid["rows"]]
+    return specs
+
+
+def split_codes(cfg, answers):
+    """Odvaja očitane kodove od odgovora. Kod je prazan ako neka znamenka nije jasno zacrnjena."""
+    codes, i = [], 0
+    for grid in cfg.get("code_grids", []):
+        digits = answers[i:i + len(grid["rows"])]
+        i += len(grid["rows"])
+        codes.append("".join(str(d) for d in digits) if all(isinstance(d, int) for d in digits) else "")
+    return codes, answers[i:]
 
 
 def measure_ratios(aligned_pages, pages_rows, questions_spec, scale):
@@ -436,26 +470,26 @@ if not os.path.exists(cfg["pdf"]):
 
 ref_images, pages_rows, scale = load_pdf_template(cfg["pdf"])
 
-# Naziv studijskog programa / nastavnika i kolegija upisuje se ručno (kodovi s obrasca se ne očitavaju)
-st.subheader("2. Podaci o anketiranju")
-info_values = {}
-info_fields = cfg["info_fields"]
-for start in range(0, len(info_fields), 3):
-    for col, field in zip(st.columns(3), info_fields[start:start + 3]):
-        key = f"info|{form_type}|{field['name']}"
-        label = field["name"] + (" (neobavezno)" if field.get("optional") else "")
-        if field.get("choices"):
-            info_values[field["name"]] = col.selectbox(label, field["choices"], key=key)
-        else:
-            info_values[field["name"]] = col.text_input(label, key=key).strip()
-missing_info = [f["name"] for f in info_fields if not f.get("optional") and not info_values[f["name"]]]
+scan_spec = code_questions(cfg) + cfg["questions"]  # Znamenke koda studija pa pitanja
+code_grids = cfg.get("code_grids", [])
+code_columns = [g["column"] for g in code_grids]
+CODE_FIELD = "Kod studijskog programa"
+
+
+@st.cache_data
+def load_programs():
+    return programi.load()
+
+
+PROGRAMS = load_programs()
 
 uploaded_files = st.file_uploader(
-    "3. Učitajte skenirane JPEG slike (A3 obrasci: parovi slika redom, naslovna pa unutarnja; "
+    "2. Učitajte skenirane JPEG slike (A3 obrasci: parovi slika redom, naslovna pa unutarnja; "
     "diplomski: parovi slika redom, 1. pa 2. stranica):",
     type=["jpg", "jpeg", "png"], accept_multiple_files=True
 )
 
+files_sorted, units, measurements, all_rows, proc_key = [], [], [], [], None
 if uploaded_files:
     files_sorted = sorted(uploaded_files, key=lambda f: f.name)
     units = scan_units(cfg["scan_mode"], files_sorted)
@@ -466,7 +500,7 @@ if uploaded_files:
     # Skupi korak (poravnanje + mjerenje kružića) radi se samo JEDNOM po učitanim datotekama.
     # Ispravci u tablici, pregled i promjena osjetljivosti koriste spremljena mjerenja,
     # a slike se ne čuvaju u memoriji.
-    proc_key = (form_type, tuple(getattr(f, "file_id", None) or f"{f.name}:{f.size}" for f in files_sorted))
+    proc_key = (form_type, "kodovi", tuple(getattr(f, "file_id", None) or f"{f.name}:{f.size}" for f in files_sorted))
     cache = st.session_state.get("omr_cache")
     if cache is None or cache["key"] != proc_key:
         measurements = []
@@ -474,7 +508,7 @@ if uploaded_files:
             progress = st.progress(0.0, text="Očitavam ankete...")
             for i, (_label, unit_files) in enumerate(units, start=1):
                 pages = align_unit(cfg["scan_mode"], unit_files, ref_images)
-                measurements.append(measure_ratios(pages, pages_rows, cfg["questions"], scale))
+                measurements.append(measure_ratios(pages, pages_rows, scan_spec, scale))
                 progress.progress(i / len(units), text=f"Očitavam ankete... {i}/{len(units)}")
             progress.empty()
         cache = {"key": proc_key, "measurements": measurements}
@@ -482,15 +516,113 @@ if uploaded_files:
         st.session_state.pop("omr_preview", None)
     measurements = cache["measurements"]
 
-    all_rows = [
-        [label] + answers_from_ratios(m, cfg["questions"], sensitivity)
-        for (label, _files), m in zip(units, measurements)
-    ]
+    for (label, _files), m in zip(units, measurements):
+        codes, answers = split_codes(cfg, answers_from_ratios(m, scan_spec, sensitivity))
+        all_rows.append([label] + codes + answers)
 
+# --- 3. Podaci o anketiranju (idu na naslovnicu izvještaja i u ime serije) ---
+st.subheader("3. Podaci o anketiranju")
+info_fields = cfg["info_fields"]
+has_code_field = any(f.get("code") for f in info_fields)
+program_col = next((1 + i for i, g in enumerate(code_grids) if g.get("program")), None)  # Stupac u all_rows
+read_codes = [row[program_col] for row in all_rows] if program_col else []
+
+
+def info_key(name):
+    return f"info|{form_type}|{name}"
+
+
+def fill_program(code, entry):
+    """Upisuje kod, fakultet i naziv programa iz popisa kodova (polja se i dalje mogu mijenjati)."""
+    st.session_state[info_key(CODE_FIELD)] = code
+    st.session_state[info_key("Fakultet")] = entry["fakultet"]
+    st.session_state[info_key("Studijski program")] = entry["program"]
+
+
+def on_code_typed():
+    code = st.session_state.get(info_key(CODE_FIELD), "").strip()
+    entry = programi.lookup(PROGRAMS, code, form_type) if re.fullmatch(r"\d{1,4}", code) else None
+    if entry:
+        fill_program(code.zfill(4), entry)
+
+
+if has_code_field:
+    found = Counter(c for c in read_codes if c)
+    # Novi skenovi: polja se popunjavaju iz koda koji je zacrnjen na većini anketa
+    if proc_key and st.session_state.get(f"autofill|{form_type}") != proc_key:
+        st.session_state[f"autofill|{form_type}"] = proc_key
+        if found:
+            top = found.most_common(1)[0][0]
+            entry = programi.lookup(PROGRAMS, top, form_type)
+            if entry:
+                fill_program(top, entry)
+            else:
+                st.session_state[info_key(CODE_FIELD)] = top
+    if read_codes:
+        unread = sum(1 for c in read_codes if not c)
+        msg = "Kod studija očitan s anketa: " + (", ".join(f"**{c}** ({n})" for c, n in found.most_common(5)) or "nijedan")
+        if unread:
+            msg += f"; nije očitan na {unread} anketa (prazno ili nejasno)"
+        st.caption(msg + ".")
+
+    if PROGRAMS:
+        search_options = programi.choices(PROGRAMS, form_type)
+        search_key = f"search|{form_type}"
+
+        def on_search():
+            idx = st.session_state.get(search_key)
+            if idx is not None:
+                fill_program(*search_options[idx])
+                st.session_state.pop(search_key, None)  # Tražilica se isprazni za sljedeće traženje
+
+        st.selectbox(
+            "🔎 Pronađite studijski program po kodu ili nazivu", range(len(search_options)), index=None,
+            format_func=lambda i: programi.label(*search_options[i]),
+            placeholder="Upišite kod ili dio naziva...", key=search_key, on_change=on_search,
+        )
+
+info_values = {}
+for start in range(0, len(info_fields), 3):
+    for col, field in zip(st.columns(3), info_fields[start:start + 3]):
+        key = info_key(field["name"])
+        label = field["name"] + (" (neobavezno)" if field.get("optional") else "")
+        if field.get("choices"):
+            info_values[field["name"]] = col.selectbox(label, field["choices"], key=key)
+        elif field.get("code"):
+            info_values[field["name"]] = col.text_input(
+                field["name"], key=key, max_chars=4, on_change=on_code_typed,
+                help="4 znamenke s 1. stranice obrasca. Fakultet i studijski program popunjavaju se iz popisa kodova.",
+            ).strip()
+        else:
+            info_values[field["name"]] = col.text_input(label, key=key).strip()
+missing_info = [f["name"] for f in info_fields if not f.get("optional") and not info_values[f["name"]]]
+
+if has_code_field and info_values.get(CODE_FIELD) and PROGRAMS:
+    chosen_code = info_values[CODE_FIELD]
+    entry = programi.lookup(PROGRAMS, chosen_code, form_type)
+    if entry is None:
+        st.warning(f"Kod **{chosen_code}** nije u popisu kodova - provjerite ga ili upišite fakultet i program ručno.")
+    elif entry["razina"] != form_type:
+        st.warning(f"Kod **{chosen_code}** je u popisu kodova *{entry['razina'].lower()}* ({entry['program']}), "
+                   f"a odabran je obrazac **{form_type}**.")
+
+if uploaded_files:
     # Prikaz tablice i preuzimanje u Excelu
-    df_out = pd.DataFrame(all_rows, columns=["Datoteka"] + cfg["columns"])
+    df_out = pd.DataFrame(all_rows, columns=["Datoteka"] + code_columns + cfg["columns"])
     st.subheader("📊 Očitani podaci (možete ih i ručno dopuniti prije izvoza)")
     edited_df = st.data_editor(df_out, num_rows="dynamic", use_container_width=True)
+
+    # Ankete na kojima je zacrnjen drugi kod - možda su zalutale u ovu seriju
+    if program_col and info_values.get(CODE_FIELD) and len(edited_df):
+        code_col = code_columns[program_col - 1]
+        codes_now = edited_df[code_col].fillna("").astype(str).str.strip()
+        other = edited_df[(codes_now != "") & (codes_now != info_values[CODE_FIELD])]
+        if len(other):
+            examples = "; ".join(f"{r['Datoteka']} → {r[code_col]}" for _, r in other.head(8).iterrows())
+            st.warning(
+                f"**{len(other)}** anketa ima drugačiji kod od {info_values[CODE_FIELD]}: {examples}"
+                f"{' …' if len(other) > 8 else ''}. Provjerite pripadaju li ovoj seriji ili ispravite kod u tablici."
+            )
 
     # Upisani nazivi dodaju se kao prvi stupci svake ankete u ovoj seriji
     final_df = edited_df.copy()
@@ -577,7 +709,7 @@ if uploaded_files:
         if preview is None or preview["key"] != preview_key:
             with st.spinner("Pripremam pregled..."):
                 pages = align_unit(cfg["scan_mode"], units[sel][1], ref_images)
-                dbg = draw_debug(pages, pages_rows, cfg["questions"], scale, measurements[sel], sensitivity)
+                dbg = draw_debug(pages, pages_rows, scan_spec, scale, measurements[sel], sensitivity)
                 preview = {"key": preview_key, "images": [shrink_for_preview(d) for d in dbg]}
             st.session_state.omr_preview = preview
         cols = st.columns(len(preview["images"]))
