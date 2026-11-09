@@ -736,8 +736,9 @@ if uploaded_files:
     many_missing = missing_counts[missing_counts >= max(5, 0.3 * len(question_cols))]
 
     st.subheader("📊 Očitani podaci")
-    st.caption("Ispravke možete upisati izravno u tablicu (padajući izbornik), a za ankete s puno praznih "
-               "odgovora koristite **✏️ Ručni unos** ispod tablice - uz sliku obrasca. *x* = nedostaje.")
+    st.caption("Ispravke možete upisati izravno u tablicu i spremiti gumbom **💾 Spremi izmjene u tablici**; "
+               "za ankete s puno praznih odgovora koristite **✏️ Ručni unos** ispod tablice - uz sliku obrasca. "
+               "*x* = nedostaje.")
     table_key = f"omr_table|{edits['table_ver']}"
     shown_labels = list(table_df.index)
 
@@ -758,8 +759,10 @@ if uploaded_files:
         for pos in change.get("deleted_rows", []):
             edits["deleted"].add(shown_labels[int(pos)])
         edits["manual_ver"] += 1  # Ručni unos prikazuje nove vrijednosti
-        if structural:
-            edits["table_ver"] += 1  # Dodani/obrisani redci: tablica se iscrtava iznova
+        edits["table_ver"] += 1  # Tablica se iscrtava sa spremljenim vrijednostima
+        n_changes = sum(len(v) for v in change.get("edited_rows", {}).values())
+        st.session_state.omr_saved_msg = ("table", f"Spremljeno: {n_changes} izmjena u tablici"
+                                          + (", dodani/obrisani redci" if structural else "") + ".")
 
     column_config = {"Datoteka": st.column_config.TextColumn("Datoteka", disabled=True)}
     for name, _page, allowed in ans_cols:
@@ -769,8 +772,15 @@ if uploaded_files:
             validate=answer_pattern(allowed) if allowed else r"^\d{0,4}$",
             help=("Dopušteno: " + ", ".join(allowed)) if allowed else "Kod studija (4 znamenke)",
         )
-    st.data_editor(table_df.reset_index(drop=True).astype(object), num_rows="dynamic", use_container_width=True,
-                   column_config=column_config, key=table_key, on_change=on_table_edit)
+    # Obrazac: dok upisujete, ništa se ne osvježava; sve se sprema tek gumbom
+    with st.form(f"table_form|{edits['table_ver']}", border=False):
+        st.data_editor(table_df.reset_index(drop=True).astype(object), num_rows="dynamic",
+                       use_container_width=True, column_config=column_config, key=table_key)
+        st.form_submit_button("💾 Spremi izmjene u tablici", on_click=on_table_edit)
+    saved_msg = st.session_state.get("omr_saved_msg")
+    if saved_msg and saved_msg[0] == "table":
+        st.success(saved_msg[1])
+        st.session_state.pop("omr_saved_msg", None)
 
     if len(many_missing):
         st.warning(
@@ -809,7 +819,6 @@ if uploaded_files:
             st.session_state.manual_for = proc_key
             st.session_state.manual_only_flagged = bool(flagged)
             st.session_state.pop("manual_sel", None)
-            st.session_state.manual_page = 0
             st.session_state.manual_snap = {}
         only_flagged = st.checkbox(f"Prikaži samo ankete s puno praznih odgovora ({len(flagged)})",
                                    key="manual_only_flagged")
@@ -837,46 +846,72 @@ if uploaded_files:
                     dbg = draw_debug(pages, pages_rows, scan_spec, scale, measurements[sel], sensitivity)
                     preview = {"key": preview_key, "images": [shrink_for_preview(d) for d in dbg]}
                 st.session_state.omr_preview = preview
-            st.caption("Zeleno = očitano, narančasto = više oznaka u retku. Upišite odgovor (1-5, ocjenu, 0/1 ...) "
-                       "ili *x* ako nema odgovora; promjene se odmah primjenjuju na tablicu, Excel i izvještaj.")
-            n_pages = len(preview["images"])
-            if st.session_state.get("manual_page", 0) >= n_pages:
-                st.session_state.manual_page = 0
-            page = st.radio("Stranica obrasca", list(range(n_pages)), format_func=lambda p: f"Stranica {p + 1}",
-                            horizontal=True, key="manual_page")
-            img_col, edit_col = st.columns([3, 2])
-            img_col.image(preview["images"][page], use_container_width=True)
-            page_cols = [(name, allowed) for name, p, allowed in ans_cols if p == page]
-            if page_cols:
-                manual_key = f"manual|{edits['manual_ver']}|{sensitivity}|{sel}|{page}"
-                # Polazna tablica se ne mijenja dok upisujete (tablica se ne iscrtava iznova pa
-                # kursor ostaje u stupcu); vaši upisi se primjenjuju na nju
-                snaps = st.session_state.setdefault("manual_snap", {})
-                if manual_key not in snaps:
-                    snaps[manual_key] = pd.DataFrame({
-                        "Pitanje": [short_question(n) for n, _a in page_cols],
-                        "Očitano": [read_df.at[sel, n] for n, _a in page_cols],
-                        "Odgovor": [table_df.at[sel, n] for n, _a in page_cols],
-                        "Dopušteno": [", ".join(a) if a else "4 znamenke" for _n, a in page_cols],
-                    }).astype(object)
+            st.caption("Zeleno = očitano, narančasto = više oznaka u retku. Pregledajte sve stranice i upišite "
+                       "odgovore (1-5, ocjenu, 0/1 ...) ili *x* ako nema odgovora. **Ništa se ne sprema dok ne "
+                       "kliknete 💾 Spremi** - ako prije toga odaberete drugu anketu, upisi se gube.")
+            saved_msg = st.session_state.get("omr_saved_msg")
+            if saved_msg and saved_msg[0] == "manual":
+                st.success(saved_msg[1])
+                st.session_state.pop("omr_saved_msg", None)
 
-                def on_manual_edit(key=manual_key, names=[n for n, _a in page_cols], lab=sel):
+            form_id = f"{edits['manual_ver']}|{sensitivity}|{sel}"
+            snaps = st.session_state.setdefault("manual_snap", {})
+            page_editors = []  # (ključ tablice, nazivi pitanja)
+            later = [i for i in choices if i > sel]
+            next_sel = later[0] if later else None
+
+            def save_manual(go_next=False, editors=page_editors, lab=sel, nxt=next_sel):
+                n_changes = 0
+                for key, names in editors:
                     for pos, values in st.session_state.get(key, {}).get("edited_rows", {}).items():
                         if "Odgovor" in values:
                             col = names[int(pos)]
                             cells[(lab, col)] = clean_answer(values["Odgovor"], allowed_of[col])
-                    edits["table_ver"] += 1  # Glavna tablica se iscrtava s novim vrijednostima
+                            n_changes += 1
+                edits["manual_ver"] += 1  # Ručni unos se iscrtava sa spremljenim vrijednostima
+                edits["table_ver"] += 1   # Glavna tablica također
+                msg = f"Spremljeno: {n_changes} odgovora za {units[lab][0]}."
+                if go_next and nxt is not None:
+                    st.session_state.manual_sel = nxt
+                    msg += " Prikazana je sljedeća anketa."
+                st.session_state.omr_saved_msg = ("manual", msg)
 
-                edit_col.data_editor(
-                    snaps[manual_key], hide_index=True, use_container_width=True, key=manual_key,
-                    on_change=on_manual_edit, height=min(36 * (len(page_cols) + 1) + 4, 1400),
-                    column_config={
-                        "Pitanje": st.column_config.TextColumn(disabled=True),
-                        "Očitano": st.column_config.TextColumn(disabled=True, width="small"),
-                        "Odgovor": st.column_config.TextColumn(width="small"),
-                        "Dopušteno": st.column_config.TextColumn(disabled=True),
-                    },
-                )
+            def save_buttons(labels):
+                c1, c2, _ = st.columns([1, 1.4, 2])
+                c1.form_submit_button(labels[0], on_click=save_manual, type="primary")
+                c2.form_submit_button(labels[1], on_click=save_manual, kwargs={"go_next": True},
+                                      disabled=next_sel is None)
+
+            # Sve stranice odabrane ankete u jednom obrascu: upisi se ne spremaju dok ne kliknete Spremi
+            with st.form(f"manual_form|{form_id}", border=True):
+                save_buttons(("💾 Spremi", "💾 Spremi i sljedeća anketa ▶"))
+                for page, image in enumerate(preview["images"]):
+                    st.markdown(f"**Stranica {page + 1}**")
+                    img_col, edit_col = st.columns([3, 2])
+                    img_col.image(image, use_container_width=True)
+                    page_cols = [(name, allowed) for name, p, allowed in ans_cols if p == page]
+                    if not page_cols:
+                        continue
+                    manual_key = f"manual|{form_id}|{page}"
+                    if manual_key not in snaps:
+                        snaps[manual_key] = pd.DataFrame({
+                            "Pitanje": [short_question(n) for n, _a in page_cols],
+                            "Očitano": [read_df.at[sel, n] for n, _a in page_cols],
+                            "Odgovor": [table_df.at[sel, n] for n, _a in page_cols],
+                            "Dopušteno": [", ".join(a) if a else "4 znamenke" for _n, a in page_cols],
+                        }).astype(object)
+                    page_editors.append((manual_key, [n for n, _a in page_cols]))
+                    edit_col.data_editor(
+                        snaps[manual_key], hide_index=True, use_container_width=True, key=manual_key,
+                        height=min(36 * (len(page_cols) + 1) + 4, 1400),
+                        column_config={
+                            "Pitanje": st.column_config.TextColumn(disabled=True),
+                            "Očitano": st.column_config.TextColumn(disabled=True, width="small"),
+                            "Odgovor": st.column_config.TextColumn(width="small"),
+                            "Dopušteno": st.column_config.TextColumn(disabled=True),
+                        },
+                    )
+                save_buttons(("💾 Spremi ispravke", "💾 Spremi ispravke i idi na sljedeću ▶"))
 
     # Ručni ispravci ulaze u Excel, izvještaj i Google Drive (brojevi kao brojevi, 'x' = nedostaje)
     edited_df = table_df.copy()
