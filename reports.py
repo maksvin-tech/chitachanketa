@@ -18,11 +18,6 @@ from datetime import date
 import numpy as np
 import pandas as pd
 
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib import font_manager  # noqa: E402
-
 from reportlab.lib import colors  # noqa: E402
 from reportlab.lib.enums import TA_CENTER, TA_LEFT  # noqa: E402
 from reportlab.lib.pagesizes import A4  # noqa: E402
@@ -80,42 +75,6 @@ def _register_fonts():
             _fonts_ready = True
             return
     raise FileNotFoundError("Nije pronađen font za izvještaj (report_assets/fonts).")
-
-
-_CHART_FONT = None
-
-
-def _font_draws_text(family):
-    """Provjera: iscrtava li matplotlib ovim fontom stvarno slova (na nekim računalima Calibri ostane prazan)."""
-    from PIL import Image as PILImage
-    for size in (7, 7.5, 8):  # Iste veličine i razlučivost kao u grafikonima
-        fig = plt.figure(figsize=(2, 0.4), dpi=200)
-        fig.text(0.05, 0.3, "Muški Ženski 12,5%", fontfamily=family, fontsize=size, color="black")
-        buf = io.BytesIO()
-        fig.savefig(buf, format="png", dpi=150)
-        plt.close(fig)
-        buf.seek(0)
-        pixels = np.asarray(PILImage.open(buf).convert("L"))
-        if int((pixels < 128).sum()) < 40:
-            return False
-    return True
-
-
-def _chart_font():
-    """Grafikoni: Calibri kao u Excelu ako postoji i ispravno se iscrtava, inače font koji dolazi s matplotlibom."""
-    global _CHART_FONT
-    if _CHART_FONT is None:
-        _CHART_FONT = "DejaVu Sans"
-        path = r"C:\Windows\Fonts\calibri.ttf"
-        if os.path.exists(path):
-            try:
-                font_manager.fontManager.addfont(path)
-                name = font_manager.FontProperties(fname=path).get_name()
-                if _font_draws_text(name):
-                    _CHART_FONT = name
-            except Exception:
-                pass
-    return _CHART_FONT
 
 
 # ------------------------------------------------------------------------------
@@ -214,76 +173,104 @@ def _table(data, col_widths, header_rows=1, total_row=True, label_cols=1, font_s
     return t
 
 
-def _bar_chart(labels, percents, width_cm=16, height_cm=None, suffix=""):
-    """Vodoravni stupčasti grafikon postotaka (prvi redak = dno grafikona, kao u Excelu)."""
-    font = _chart_font()
+CHART_TEXT = colors.HexColor("#595959")
+CHART_VALUE = colors.HexColor("#404040")
+CHART_GRID = colors.HexColor("#D9D9D9")
+CHART_AXIS = colors.HexColor("#BFBFBF")
+
+
+def _nice_step(x_max):
+    for step in (1, 2, 2.5, 5, 10, 20, 25, 50):
+        if x_max / step <= 8:
+            return step
+    return 100
+
+
+def hbar_chart(labels, series, width_cm=16, height_cm=None, suffix="", legend=False):
+    """Vodoravni stupčasti grafikon, nacrtan izravno u PDF (isti font kao tekst, oštar pri svakom povećanju).
+
+    series: lista (vrijednosti, boja, naziv). Prvi redak je na dnu grafikona, kao u Excelu.
+    """
+    from reportlab.graphics.shapes import Drawing, Line, Rect, String
+    from reportlab.lib.utils import simpleSplit
+
+    _register_fonts()
+    font = "Serif"
+    n_series = len(series)
+    value_size = 8 if n_series == 1 else 7
     height_cm = height_cm or max(4.5, 1.15 * len(labels) + 1.5)
-    fig, ax = plt.subplots(figsize=(width_cm / 2.54, height_cm / 2.54), dpi=200)
-    vals = [0 if (p is None or np.isnan(p)) else p for p in percents]
-    y = np.arange(len(labels))
-    ax.barh(y, vals, height=0.45, color=BAR)
-    ax.set_yticks(y, labels, fontfamily=font, fontsize=8, color="#595959")
-    top = max(vals) if vals else 0
+    W, H = width_cm * cm, height_cm * cm
+    d = Drawing(W, H)
+    d.hAlign = "CENTER"
+    d.add(Rect(0.3, 0.3, W - 0.6, H - 0.6, strokeColor=CHART_GRID, strokeWidth=0.6, fillColor=colors.white))
+
+    values = [[0 if (v is None or (isinstance(v, float) and np.isnan(v))) else float(v) for v in vals]
+              for vals, _c, _n in series]
+    top = max([max(v) for v in values if v] + [0])
     x_max = 10 if top <= 0 else min(100, np.ceil(top * 1.12 / 10) * 10)
     if top > 0 and x_max < top + 3:
         x_max = top + 5
-    ax.set_xlim(0, x_max)
-    ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: fmt(v, 1) + suffix))
-    ax.tick_params(axis="x", labelsize=8, colors="#595959", length=0)
-    ax.tick_params(axis="y", length=0)
-    ax.grid(axis="x", color="#D9D9D9", linewidth=0.7)
-    ax.set_axisbelow(True)
-    for side in ("top", "right", "bottom"):
-        ax.spines[side].set_visible(False)
-    ax.spines["left"].set_color("#BFBFBF")
-    for yi, v in zip(y, vals):
-        ax.text(v + x_max * 0.01, yi, fmt(v, 1) + suffix, va="center", fontsize=8, fontfamily=font, color="#404040")
-    for t in ax.get_xticklabels():
-        t.set_fontfamily(font)
-    return figure_image(fig, width_cm, height_cm)
+
+    # Raspored: oznake lijevo, (legenda desno), os s oznakama dolje
+    pad = 0.25 * cm
+    max_label_w = W * 0.38
+    wrapped = [simpleSplit(str(lab), font, 8, max_label_w) or [""] for lab in labels]
+    label_w = max([pdfmetrics.stringWidth(line, font, 8) for lines in wrapped for line in lines] + [10])
+    legend_w = (max(pdfmetrics.stringWidth(n, font, 8) for _v, _c, n in series) + 22) if legend else 0
+    value_w = pdfmetrics.stringWidth("100,0" + suffix, font, value_size) + 4
+    x0 = pad + label_w + 6
+    x1 = W - pad - legend_w - value_w
+    y0 = pad + 14  # prostor za brojeve na osi
+    y1 = H - pad
+    plot_w, plot_h = max(x1 - x0, 10), max(y1 - y0, 10)
+    n = max(len(labels), 1)
+    row_h = plot_h / n
+
+    def x_of(v):
+        return x0 + plot_w * (v / x_max)
+
+    # Mreža i brojevi na osi
+    step = _nice_step(x_max)
+    t = 0.0
+    while t <= x_max + 1e-9:
+        x = x_of(t)
+        d.add(Line(x, y0, x, y1, strokeColor=CHART_GRID, strokeWidth=0.5))
+        d.add(String(x, pad + 3, fmt(t, 1) + suffix, fontName=font, fontSize=8, fillColor=CHART_TEXT,
+                     textAnchor="middle"))
+        t += step
+    d.add(Line(x0, y0, x0, y1, strokeColor=CHART_AXIS, strokeWidth=0.8))
+
+    # Stupci, vrijednosti i oznake kategorija
+    bar_h = row_h * (0.45 if n_series == 1 else 0.36)
+    for i, lines in enumerate(wrapped):
+        yc = y0 + row_h * (i + 0.5)
+        for k, (_vals, color, _name) in enumerate(series):
+            v = values[k][i] if i < len(values[k]) else 0
+            # Više serija: prva (npr. Muški) ispod druge, kao u dosadašnjim grafikonima
+            yb = yc - bar_h * n_series / 2 + bar_h * k
+            if v > 0:
+                d.add(Rect(x0, yb, x_of(v) - x0, bar_h, fillColor=colors.HexColor(color), strokeColor=None))
+            d.add(String(x_of(v) + 3, yb + bar_h / 2 - value_size * 0.35, fmt(v, 1) + suffix, fontName=font,
+                         fontSize=value_size, fillColor=CHART_VALUE))
+        line_h = 9
+        start = yc + (len(lines) - 1) * line_h / 2 - 8 * 0.35
+        for j, line in enumerate(lines):
+            d.add(String(x0 - 5, start - j * line_h, line, fontName=font, fontSize=8, fillColor=CHART_TEXT,
+                         textAnchor="end"))
+
+    if legend:
+        lx = W - pad - legend_w + 6
+        ly = (y0 + y1) / 2 + (len(series) - 1) * 7
+        for k, (_vals, color, name) in enumerate(series):
+            yy = ly - k * 14
+            d.add(Rect(lx, yy - 3, 12, 6, fillColor=colors.HexColor(color), strokeColor=None))
+            d.add(String(lx + 16, yy - 3, name, fontName=font, fontSize=8, fillColor=CHART_TEXT))
+    return d
 
 
-_PALETTE = None
-
-
-def _chart_palette():
-    """Paleta od 256 boja: 96 sivih tonova + prijelazi boja grafikona prema bijeloj."""
-    global _PALETTE
-    if _PALETTE is None:
-        from PIL import Image as PILImage
-        colors_rgb = [(round(255 * i / 95),) * 3 for i in range(96)]
-        for base in ("#2E75B6", "#5B9BD5", "#ED7D31"):  # BAR, muški, ženski
-            r, g, b = (int(base.lstrip("#")[k:k + 2], 16) for k in (0, 2, 4))
-            for t in np.linspace(0, 1, 32):  # boja -> bijela
-                colors_rgb.append(tuple(round(c + (255 - c) * t) for c in (r, g, b)))
-            for t in np.linspace(0, 1, 21):  # boja -> tamnosiva (rubovi na tekstu/osima)
-                colors_rgb.append(tuple(round(c + (64 - c) * t) for c in (r, g, b)))
-        flat = [v for rgb in colors_rgb[:256] for v in rgb]
-        flat += [255] * (768 - len(flat))
-        _PALETTE = PILImage.new("P", (1, 1))
-        _PALETTE.putpalette(flat)
-    return _PALETTE
-
-
-def figure_image(fig, width_cm, height_cm, dpi=150):
-    """Pretvara matplotlib grafikon u sliku za PDF (sažeta paleta boja = mala datoteka)."""
-    from PIL import Image as PILImage
-    fig.patch.set_edgecolor("#D9D9D9")
-    fig.patch.set_linewidth(1.2)
-    fig.tight_layout(pad=0.8)
-    raw = io.BytesIO()
-    fig.savefig(raw, format="png", dpi=dpi, edgecolor=fig.get_edgecolor())
-    plt.close(fig)
-    raw.seek(0)
-    small = io.BytesIO()
-    # Stalna paleta (sivi tonovi za tekst + nijanse boja stupaca): tanki tekst (npr. Calibri)
-    # ne smije nestati pri sažimanju, a datoteka ostaje mala.
-    PILImage.open(raw).convert("RGB").quantize(palette=_chart_palette(), dither=PILImage.Dither.NONE).save(
-        small, format="PNG", optimize=True)
-    small.seek(0)
-    img = Image(small, width=width_cm * cm, height=height_cm * cm)
-    img.hAlign = "CENTER"
-    return img
+def _bar_chart(labels, percents, width_cm=16, height_cm=None, suffix=""):
+    """Vodoravni stupčasti grafikon postotaka (prvi redak = dno grafikona, kao u Excelu)."""
+    return hbar_chart(labels, [(percents, BAR, "")], width_cm=width_cm, height_cm=height_cm, suffix=suffix)
 
 
 def _cover(st, title_lines, middle_bold, middle_italic, n_surveys, report_date, place="Zagreb"):

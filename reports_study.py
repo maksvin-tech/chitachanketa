@@ -15,7 +15,6 @@ from datetime import date
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
@@ -477,37 +476,10 @@ def _grid_table(data, col_widths, header_rows, spans=(), font_size=9, label_cols
 
 
 def _grouped_chart(labels, m_pct, z_pct, width_cm=15.5):
-    """Grafikon po spolu (M i Ž), postoci od ukupnog broja."""
-    font = base._chart_font()
+    """Grafikon po spolu (Muški i Ženski), postoci od ukupnog broja."""
     height_cm = max(5.0, 1.0 * len(labels) + 2.0)
-    fig, ax = plt.subplots(figsize=(width_cm / 2.54, height_cm / 2.54), dpi=200)
-    y = np.arange(len(labels))
-    h = 0.36
-    ax.barh(y - h / 2, m_pct, height=h, color=M_COLOR, label="Muški")
-    ax.barh(y + h / 2, z_pct, height=h, color=Z_COLOR, label="Ženski")
-    ax.set_yticks(y, labels, fontfamily=font, fontsize=8, color="#595959")
-    top = max(list(m_pct) + list(z_pct) + [0])
-    x_max = 10 if top <= 0 else min(100, np.ceil(top * 1.15 / 10) * 10)
-    if top > 0 and x_max < top + 3:
-        x_max = top + 6
-    ax.set_xlim(0, x_max)
-    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: fmt(v, 1) + "%"))
-    ax.tick_params(axis="x", labelsize=7.5, colors="#595959", length=0)
-    ax.tick_params(axis="y", length=0)
-    ax.grid(axis="x", color="#D9D9D9", linewidth=0.7)
-    ax.set_axisbelow(True)
-    for side in ("top", "right", "bottom"):
-        ax.spines[side].set_visible(False)
-    ax.spines["left"].set_color("#BFBFBF")
-    for yi, (mv, zv) in enumerate(zip(m_pct, z_pct)):
-        ax.text(mv + x_max * 0.01, yi - h / 2, fmt(mv, 1) + "%", va="center", fontsize=7, fontfamily=font, color="#404040")
-        ax.text(zv + x_max * 0.01, yi + h / 2, fmt(zv, 1) + "%", va="center", fontsize=7, fontfamily=font, color="#404040")
-    for t in ax.get_xticklabels():
-        t.set_fontfamily(font)
-    leg = ax.legend(loc="center left", bbox_to_anchor=(1.0, 0.5), frameon=False, prop={"family": font, "size": 8})
-    for txt in leg.get_texts():
-        txt.set_color("#595959")
-    return base.figure_image(fig, width_cm, height_cm)
+    return base.hbar_chart(labels, [(m_pct, M_COLOR, "Muški"), (z_pct, Z_COLOR, "Ženski")],
+                           width_cm=width_cm, height_cm=height_cm, suffix="%", legend=True)
 
 
 def _pct_chart(labels, pcts, height_cm=None):
