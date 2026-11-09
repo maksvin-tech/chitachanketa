@@ -82,13 +82,40 @@ def _register_fonts():
     raise FileNotFoundError("Nije pronađen font za izvještaj (report_assets/fonts).")
 
 
+_CHART_FONT = None
+
+
+def _font_draws_text(family):
+    """Provjera: iscrtava li matplotlib ovim fontom stvarno slova (na nekim računalima Calibri ostane prazan)."""
+    from PIL import Image as PILImage
+    for size in (7, 7.5, 8):  # Iste veličine i razlučivost kao u grafikonima
+        fig = plt.figure(figsize=(2, 0.4), dpi=200)
+        fig.text(0.05, 0.3, "Muški Ženski 12,5%", fontfamily=family, fontsize=size, color="black")
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=150)
+        plt.close(fig)
+        buf.seek(0)
+        pixels = np.asarray(PILImage.open(buf).convert("L"))
+        if int((pixels < 128).sum()) < 40:
+            return False
+    return True
+
+
 def _chart_font():
-    """Grafikoni: Calibri kao u Excelu ako postoji, inače zadani font."""
-    for path in (r"C:\Windows\Fonts\calibri.ttf",):
+    """Grafikoni: Calibri kao u Excelu ako postoji i ispravno se iscrtava, inače font koji dolazi s matplotlibom."""
+    global _CHART_FONT
+    if _CHART_FONT is None:
+        _CHART_FONT = "DejaVu Sans"
+        path = r"C:\Windows\Fonts\calibri.ttf"
         if os.path.exists(path):
-            font_manager.fontManager.addfont(path)
-            return font_manager.FontProperties(fname=path).get_name()
-    return "DejaVu Sans"
+            try:
+                font_manager.fontManager.addfont(path)
+                name = font_manager.FontProperties(fname=path).get_name()
+                if _font_draws_text(name):
+                    _CHART_FONT = name
+            except Exception:
+                pass
+    return _CHART_FONT
 
 
 # ------------------------------------------------------------------------------
@@ -216,6 +243,28 @@ def _bar_chart(labels, percents, width_cm=16, height_cm=None, suffix=""):
     return figure_image(fig, width_cm, height_cm)
 
 
+_PALETTE = None
+
+
+def _chart_palette():
+    """Paleta od 256 boja: 96 sivih tonova + prijelazi boja grafikona prema bijeloj."""
+    global _PALETTE
+    if _PALETTE is None:
+        from PIL import Image as PILImage
+        colors_rgb = [(round(255 * i / 95),) * 3 for i in range(96)]
+        for base in ("#2E75B6", "#5B9BD5", "#ED7D31"):  # BAR, muški, ženski
+            r, g, b = (int(base.lstrip("#")[k:k + 2], 16) for k in (0, 2, 4))
+            for t in np.linspace(0, 1, 32):  # boja -> bijela
+                colors_rgb.append(tuple(round(c + (255 - c) * t) for c in (r, g, b)))
+            for t in np.linspace(0, 1, 21):  # boja -> tamnosiva (rubovi na tekstu/osima)
+                colors_rgb.append(tuple(round(c + (64 - c) * t) for c in (r, g, b)))
+        flat = [v for rgb in colors_rgb[:256] for v in rgb]
+        flat += [255] * (768 - len(flat))
+        _PALETTE = PILImage.new("P", (1, 1))
+        _PALETTE.putpalette(flat)
+    return _PALETTE
+
+
 def figure_image(fig, width_cm, height_cm, dpi=150):
     """Pretvara matplotlib grafikon u sliku za PDF (sažeta paleta boja = mala datoteka)."""
     from PIL import Image as PILImage
@@ -227,7 +276,10 @@ def figure_image(fig, width_cm, height_cm, dpi=150):
     plt.close(fig)
     raw.seek(0)
     small = io.BytesIO()
-    PILImage.open(raw).convert("RGB").quantize(colors=48).save(small, format="PNG", optimize=True)
+    # Stalna paleta (sivi tonovi za tekst + nijanse boja stupaca): tanki tekst (npr. Calibri)
+    # ne smije nestati pri sažimanju, a datoteka ostaje mala.
+    PILImage.open(raw).convert("RGB").quantize(palette=_chart_palette(), dither=PILImage.Dither.NONE).save(
+        small, format="PNG", optimize=True)
     small.seek(0)
     img = Image(small, width=width_cm * cm, height=height_cm * cm)
     img.hAlign = "CENTER"

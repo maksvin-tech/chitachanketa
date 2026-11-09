@@ -395,6 +395,49 @@ def align_unit(scan_mode, unit_files, ref_images):
     ]
 
 
+# --- Ručni ispravci (npr. student je zaokružio umjesto zacrnio kružiće) ---
+
+MISSING = "x"
+
+
+def answer_columns(cfg):
+    """Za svaki stupac s odgovorima: (naziv, stranica obrasca, dopuštene vrijednosti ili None za kod)."""
+    cols = [(g["column"], g["page"], None) for g in cfg.get("code_grids", [])]
+    for name, (page, _rows, values) in zip(cfg["columns"], cfg["questions"]):
+        allowed = [str(v) for v in values if v != MISSING] + [MISSING]
+        cols.append((name, page, allowed))
+    return cols
+
+
+def clean_answer(value, allowed):
+    """Ujednačuje upisani odgovor: '3,5' -> '3.5', prazno/X -> 'x', kod -> 4 znamenke."""
+    text = "" if value is None or (isinstance(value, float) and np.isnan(value)) else str(value).strip()
+    if allowed is None:  # Kod studija
+        digits = "".join(ch for ch in text if ch.isdigit())
+        return digits.zfill(4) if digits and len(digits) <= 4 else text
+    text = text.replace(",", ".")
+    if text.lower() in ("", "x", "nan", "none"):
+        return MISSING
+    try:
+        number = float(text)
+        return str(int(number)) if number.is_integer() else str(number)
+    except ValueError:
+        return text
+
+
+def typed_answer(text):
+    """Natrag u broj za Excel i izvještaje ('x' ostaje 'x')."""
+    try:
+        number = float(text)
+        return int(number) if number.is_integer() else number
+    except (TypeError, ValueError):
+        return text
+
+
+def short_question(name):
+    return " ".join(str(name).split())
+
+
 def shrink_for_preview(img_bgr, max_width=1200):
     h, w = img_bgr.shape[:2]
     if w > max_width:
@@ -610,22 +653,167 @@ if has_code_field and info_values.get(CODE_FIELD) and PROGRAMS:
                    f"a odabran je obrazac **{form_type}**.")
 
 if uploaded_files:
-    # Prikaz tablice i preuzimanje u Excelu
-    df_out = pd.DataFrame(all_rows, columns=["Datoteka"] + code_columns + cfg["columns"])
-    st.subheader("📊 Očitani podaci (možete ih i ručno dopuniti prije izvoza)")
-    edited_df = st.data_editor(df_out, num_rows="dynamic", use_container_width=True)
+    # --- Ispravci se čuvaju zasebno od očitanja (vrijede i kad se promijeni osjetljivost) ---
+    edits = st.session_state.get("omr_edits")
+    if edits is None or edits["key"] != proc_key:
+        edits = {"key": proc_key, "cells": {}, "added": [], "deleted": set(), "table_ver": 0, "manual_ver": 0}
+        st.session_state.omr_edits = edits
+    cells = edits["cells"]
+    ans_cols = answer_columns(cfg)
+    allowed_of = {name: allowed for name, _page, allowed in ans_cols}
+    col_names = [name for name, _page, _allowed in ans_cols]
+
+    def build_table():
+        """Očitanja + ručni ispravci, sve kao tekst ('3.5', 'x', '0061')."""
+        rows, labels = [], []
+        for i, row in enumerate(all_rows):
+            if i in edits["deleted"]:
+                continue
+            rows.append([row[0]] + [clean_answer(v, allowed_of[c]) for c, v in zip(col_names, row[1:])])
+            labels.append(i)
+        for k, lab in enumerate(edits["added"]):
+            if lab not in edits["deleted"]:
+                rows.append([f"Ručno dodana anketa {k + 1}"] + [MISSING if allowed_of[c] else "" for c in col_names])
+                labels.append(lab)
+        df = pd.DataFrame(rows, columns=["Datoteka"] + col_names, index=labels)
+        for (lab, col), value in cells.items():
+            if lab in df.index and col in df.columns:
+                df.at[lab, col] = value
+        return df
+
+    table_df = build_table()
+    read_df = pd.DataFrame([[r[0]] + [clean_answer(v, allowed_of[c]) for c, v in zip(col_names, r[1:])] for r in all_rows],
+                           columns=["Datoteka"] + col_names)  # Izvorno očitano (za usporedbu)
+    question_cols = [name for name, _p, allowed in ans_cols if allowed]
+    missing_counts = (table_df[question_cols] == MISSING).sum(axis=1) if question_cols else pd.Series(0, index=table_df.index)
+    many_missing = missing_counts[missing_counts >= max(5, 0.3 * len(question_cols))]
+
+    st.subheader("📊 Očitani podaci")
+    st.caption("Ispravke možete upisati izravno u tablicu (padajući izbornik), a za ankete s puno praznih "
+               "odgovora koristite **✏️ Ručni unos** ispod tablice - uz sliku obrasca. *x* = nedostaje.")
+    table_key = f"omr_table|{edits['table_ver']}"
+    shown_labels = list(table_df.index)
+
+    def on_table_edit():
+        change = st.session_state.get(table_key, {})
+        for pos, values in change.get("edited_rows", {}).items():
+            lab = shown_labels[int(pos)]
+            for col, value in values.items():
+                if col in allowed_of:
+                    cells[(lab, col)] = clean_answer(value, allowed_of[col])
+        structural = bool(change.get("added_rows") or change.get("deleted_rows"))
+        for new_row in change.get("added_rows", []):
+            lab = len(all_rows) + len(edits["added"])
+            edits["added"].append(lab)
+            for col, value in new_row.items():
+                if col in allowed_of:
+                    cells[(lab, col)] = clean_answer(value, allowed_of[col])
+        for pos in change.get("deleted_rows", []):
+            edits["deleted"].add(shown_labels[int(pos)])
+        edits["manual_ver"] += 1  # Ručni unos prikazuje nove vrijednosti
+        if structural:
+            edits["table_ver"] += 1  # Dodani/obrisani redci: tablica se iscrtava iznova
+
+    column_config = {"Datoteka": st.column_config.TextColumn("Datoteka", disabled=True)}
+    for name, _page, allowed in ans_cols:
+        label = short_question(name)
+        column_config[name] = (st.column_config.SelectboxColumn(label, options=allowed) if allowed
+                               else st.column_config.TextColumn(label, max_chars=4))
+    st.data_editor(table_df.reset_index(drop=True), num_rows="dynamic", use_container_width=True,
+                   column_config=column_config, key=table_key, on_change=on_table_edit)
+
+    if len(many_missing):
+        st.warning(
+            f"**{len(many_missing)}** anketa ima puno praznih odgovora (možda su kružići zaokruženi, a ne "
+            "zacrnjeni): " + ", ".join(f"{table_df.at[lab, 'Datoteka']} ({n})" for lab, n in many_missing.head(10).items())
+            + (" …" if len(many_missing) > 10 else "") + ". Upišite ih u **✏️ Ručni unos** ispod."
+        )
+
+    # Upisane vrijednosti izvan ljestvice (npr. 7 kod pitanja 1-5)
+    invalid = [(table_df.at[lab, "Datoteka"], short_question(col), table_df.at[lab, col])
+               for lab in table_df.index for col in question_cols
+               if table_df.at[lab, col] not in allowed_of[col]]
+    if invalid:
+        st.error("Neispravne vrijednosti (računaju se kao *nedostaje*): " + "; ".join(
+            f"{f} – {q}: '{v}'" for f, q, v in invalid[:10]) + (" …" if len(invalid) > 10 else ""))
 
     # Ankete na kojima je zacrnjen drugi kod - možda su zalutale u ovu seriju
-    if program_col and info_values.get(CODE_FIELD) and len(edited_df):
+    if program_col and info_values.get(CODE_FIELD) and len(table_df):
         code_col = code_columns[program_col - 1]
-        codes_now = edited_df[code_col].fillna("").astype(str).str.strip()
-        other = edited_df[(codes_now != "") & (codes_now != info_values[CODE_FIELD])]
+        codes_now = table_df[code_col].fillna("").astype(str).str.strip()
+        other = table_df[(codes_now != "") & (codes_now != info_values[CODE_FIELD])]
         if len(other):
             examples = "; ".join(f"{r['Datoteka']} → {r[code_col]}" for _, r in other.head(8).iterrows())
             st.warning(
                 f"**{len(other)}** anketa ima drugačiji kod od {info_values[CODE_FIELD]}: {examples}"
                 f"{' …' if len(other) > 8 else ''}. Provjerite pripadaju li ovoj seriji ili ispravite kod u tablici."
             )
+
+    # --- ✏️ Ručni unos uz sliku obrasca (crta se samo odabrana anketa) ---
+    if units:
+        st.subheader("✏️ Ručni unos i vizualna provjera")
+        flagged = set(many_missing.index)
+        only_flagged = st.checkbox(f"Prikaži samo ankete s puno praznih odgovora ({len(flagged)})",
+                                   value=bool(flagged), disabled=not flagged)
+        choices = [i for i in range(len(units)) if i not in edits["deleted"] and (not only_flagged or i in flagged)]
+        if not choices:
+            choices = [i for i in range(len(units)) if i not in edits["deleted"]]
+
+        def unit_label(i):
+            n = int(missing_counts.get(i, 0))
+            return f"{'⚠️ ' if i in flagged else ''}{units[i][0]}  ({n} praznih)"
+
+        sel = st.selectbox("Odaberite anketu:", choices, format_func=unit_label) if choices else None
+        if sel is not None:
+            preview_key = (proc_key, sel, sensitivity)
+            preview = st.session_state.get("omr_preview")
+            if preview is None or preview["key"] != preview_key:
+                with st.spinner("Pripremam pregled..."):
+                    pages = align_unit(cfg["scan_mode"], units[sel][1], ref_images)
+                    dbg = draw_debug(pages, pages_rows, scan_spec, scale, measurements[sel], sensitivity)
+                    preview = {"key": preview_key, "images": [shrink_for_preview(d) for d in dbg]}
+                st.session_state.omr_preview = preview
+            st.caption("Zeleno = očitano, narančasto = više oznaka u retku. Upišite odgovor (1-5, ocjenu, 0/1 ...) "
+                       "ili *x* ako nema odgovora; promjene se odmah primjenjuju na tablicu, Excel i izvještaj.")
+            tabs = st.tabs([f"Stranica {p + 1}" for p in range(len(preview["images"]))])
+            for page, tab in enumerate(tabs):
+                with tab:
+                    img_col, edit_col = st.columns([3, 2])
+                    img_col.image(preview["images"][page], use_container_width=True)
+                    page_cols = [(name, allowed) for name, p, allowed in ans_cols if p == page]
+                    if not page_cols:
+                        continue
+                    manual_df = pd.DataFrame({
+                        "Pitanje": [short_question(n) for n, _a in page_cols],
+                        "Očitano": [read_df.at[sel, n] for n, _a in page_cols],
+                        "Odgovor": [table_df.at[sel, n] for n, _a in page_cols],
+                        "Dopušteno": [", ".join(a) if a else "4 znamenke" for _n, a in page_cols],
+                    })
+                    manual_key = f"manual|{edits['manual_ver']}|{sel}|{page}"
+
+                    def on_manual_edit(key=manual_key, names=[n for n, _a in page_cols], lab=sel):
+                        for pos, values in st.session_state.get(key, {}).get("edited_rows", {}).items():
+                            if "Odgovor" in values:
+                                col = names[int(pos)]
+                                cells[(lab, col)] = clean_answer(values["Odgovor"], allowed_of[col])
+                        edits["table_ver"] += 1  # Glavna tablica se iscrtava s novim vrijednostima
+
+                    edit_col.data_editor(
+                        manual_df, hide_index=True, use_container_width=True, key=manual_key,
+                        on_change=on_manual_edit, height=min(36 * (len(page_cols) + 1) + 4, 1400),
+                        column_config={
+                            "Pitanje": st.column_config.TextColumn(disabled=True),
+                            "Očitano": st.column_config.TextColumn(disabled=True, width="small"),
+                            "Odgovor": st.column_config.TextColumn(width="small"),
+                            "Dopušteno": st.column_config.TextColumn(disabled=True),
+                        },
+                    )
+
+    # Ručni ispravci ulaze u Excel, izvještaj i Google Drive (brojevi kao brojevi, 'x' = nedostaje)
+    edited_df = table_df.copy()
+    for col in question_cols:
+        edited_df[col] = edited_df[col].map(typed_answer)
+    edited_df = edited_df.reset_index(drop=True)
 
     # Upisani nazivi dodaju se kao prvi stupci svake ankete u ovoj seriji
     final_df = edited_df.copy()
@@ -703,21 +891,6 @@ if uploaded_files:
             if links:
                 st.markdown(" · ".join(links))
 
-    # Vizualna provjera zelenih kružića - crta se samo odabrana anketa
-    if units:
-        st.subheader("🔍 Vizualna provjera prepoznatih kružića")
-        sel = st.selectbox("Odaberite anketu za pregled:", range(len(units)), format_func=lambda i: units[i][0])
-        preview_key = (proc_key, sel, sensitivity)
-        preview = st.session_state.get("omr_preview")
-        if preview is None or preview["key"] != preview_key:
-            with st.spinner("Pripremam pregled..."):
-                pages = align_unit(cfg["scan_mode"], units[sel][1], ref_images)
-                dbg = draw_debug(pages, pages_rows, scan_spec, scale, measurements[sel], sensitivity)
-                preview = {"key": preview_key, "images": [shrink_for_preview(d) for d in dbg]}
-            st.session_state.omr_preview = preview
-        cols = st.columns(len(preview["images"]))
-        for idx, img in enumerate(preview["images"]):
-            cols[idx].image(img, caption=f"Stranica {idx+1}", use_container_width=True)
 
 # ==============================================================================
 # 5. SVI SPREMLJENI REZULTATI IZ GOOGLE DRIVEA (osnova za izvještaje)

@@ -483,8 +483,8 @@ def _grouped_chart(labels, m_pct, z_pct, width_cm=15.5):
     fig, ax = plt.subplots(figsize=(width_cm / 2.54, height_cm / 2.54), dpi=200)
     y = np.arange(len(labels))
     h = 0.36
-    ax.barh(y - h / 2, m_pct, height=h, color=M_COLOR, label="M")
-    ax.barh(y + h / 2, z_pct, height=h, color=Z_COLOR, label="Ž")
+    ax.barh(y - h / 2, m_pct, height=h, color=M_COLOR, label="Muški")
+    ax.barh(y + h / 2, z_pct, height=h, color=Z_COLOR, label="Ženski")
     ax.set_yticks(y, labels, fontfamily=font, fontsize=8, color="#595959")
     top = max(list(m_pct) + list(z_pct) + [0])
     x_max = 10 if top <= 0 else min(100, np.ceil(top * 1.15 / 10) * 10)
