@@ -62,7 +62,7 @@ CONFIG = {
     "Preddiplomski studij": {
         "pdf": "Anketa preddiplomski.pdf",
         "scan_mode": "A3_TWO_IMAGES",  # 1. slika: desno str.1 | 2. slika: lijevo str.2, desno str.3
-        "a4_option": True,  # Neke sastavnice ispisuju obrazac na A4: svaka stranica je zasebna slika
+        "auto_pages": True,  # A3 (dvije stranice na slici) ili A4 ispis (stranica po slici) - prepoznaje se samo
         "info_fields": [{"name": "Kod studijskog programa", "code": True, "optional": True}, {"name": "Fakultet"}, {"name": "Studijski program"}],
         "batch_label": ["Kod studijskog programa", "Studijski program"],
         # Kod studija koji student zacrni na 1. stranici (desno je samo tiskani primjer "kód 2209")
@@ -147,7 +147,7 @@ CONFIG = {
     "Integrirani studij": {
         "pdf": "Anketa integrirani.pdf",
         "scan_mode": "A3_TWO_IMAGES",
-        "a4_option": True,
+        "auto_pages": True,
         "info_fields": [{"name": "Kod studijskog programa", "code": True, "optional": True}, {"name": "Fakultet"}, {"name": "Studijski program"}],
         "batch_label": ["Kod studijskog programa", "Studijski program"],
         # Kod studija koji student zacrni na 1. stranici (desno je samo tiskani primjer "kód 2209")
@@ -297,14 +297,23 @@ def split_codes(cfg, answers):
 
 def measure_ratios(aligned_pages, pages_rows, questions_spec, scale):
     """Mjeri zacrnjenost svakog kružića. Vraća listu (jedna lista omjera po pitanju).
-    Ovo je jedini skupi korak - rezultat je malen pa se može čuvati za stotine anketa."""
-    thresh_pages = []
+    Ovo je jedini skupi korak - rezultat je malen pa se može čuvati za stotine anketa.
+
+    Omjer = udio tamnih točaka + udio točaka u boji (plava kemijska). Tisak je crn, pa boja
+    pouzdano odaje oznaku studenta i na tamnim fotokopijama gdje su prazni kružići "debeli"."""
+    thresh_pages, ink_pages = [], []
     for p in aligned_pages:
         gray = cv2.cvtColor(p, cv2.COLOR_BGR2GRAY)
         # Adaptivni prag hvata i plavu i crnu kemijsku olovku
         th = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                    cv2.THRESH_BINARY_INV, 31, 10)
         thresh_pages.append(th)
+        hsv = cv2.cvtColor(p, cv2.COLOR_BGR2HSV)
+        ink = ((hsv[:, :, 1] > 70) & (hsv[:, :, 2] < 235)).astype(np.uint8) * 255
+        # Papir u boji ili obojeni sken (većina stranice ima boju): boja tada ne govori ništa
+        # pa se ne koristi i čitanje je isto kao kod crno-bijelog skena
+        paper_tint = float(np.median(hsv[::8, ::8, 1]))
+        ink_pages.append(ink if paper_tint < 30 and cv2.countNonZero(ink) < 0.15 * ink.size else None)
 
     radius = bubble_radius(scale)
     size = 2 * radius + 1
@@ -313,7 +322,7 @@ def measure_ratios(aligned_pages, pages_rows, questions_spec, scale):
 
     all_ratios = []
     for page_idx, row_spec, _values in questions_spec:
-        th = thresh_pages[page_idx]
+        th, ink = thresh_pages[page_idx], ink_pages[page_idx]
         h, w = th.shape
         ratios = []
         for (cx, cy) in question_coords(pages_rows, page_idx, row_spec):
@@ -324,8 +333,11 @@ def measure_ratios(aligned_pages, pages_rows, questions_spec, scale):
             roi = th[y0:y1, x0:x1]
             m = disk[y0 - (iy - radius):y1 - (iy - radius), x0 - (ix - radius):x1 - (ix - radius)]
             total_pixels = cv2.countNonZero(m)
-            dark_pixels = cv2.countNonZero(cv2.bitwise_and(roi, roi, mask=m))
-            ratios.append(dark_pixels / float(total_pixels) if total_pixels else 0.0)
+            marked_pixels = cv2.countNonZero(cv2.bitwise_and(roi, roi, mask=m))
+            if ink is not None:
+                ink_roi = ink[y0:y1, x0:x1]
+                marked_pixels += cv2.countNonZero(cv2.bitwise_and(ink_roi, ink_roi, mask=m))
+            ratios.append(marked_pixels / float(total_pixels) if total_pixels else 0.0)
         all_ratios.append(ratios)
     return all_ratios
 
@@ -419,15 +431,13 @@ def _orb_inliers(gray, refs):
     return counts
 
 
-def classify_page(f, refs):
-    """Koja je stranica obrasca na slici: (indeks stranice ili None, okrenuta za 180°).
+def _classify_gray(small, medium_fn, refs):
+    """Koja je stranica obrasca na (dijelu) slike: (indeks stranice ili None, okrenuta za 180°).
 
     Brza usporedba otisaka kad je rezultat jasan (ravno skenirano: ~0,85-0,95 prema < 0,35);
     inače (nakošeno, smanjeni ispis) usporedba ORB točaka, koja ne ovisi o nagibu ni okretanju."""
-    data = np.frombuffer(f.getvalue(), np.uint8)
-    small = cv2.imdecode(data, cv2.IMREAD_REDUCED_GRAYSCALE_8)
-    if small is None:
-        return None, False
+    if small is None or small.size == 0 or float(small.std()) < 6:
+        return None, False  # Prazna stranica (npr. poleđina A3 arka): kontrast ~0, a stranice obrasca > 20
     scores = []  # (sličnost, stranica, okrenuta)
     for rotated, img in ((False, small), (True, cv2.rotate(small, cv2.ROTATE_180))):
         sig = page_signature(img)
@@ -436,8 +446,7 @@ def classify_page(f, refs):
     best, second = scores[0], scores[1]
     if best[0] >= 0.6 and best[0] - second[0] >= 0.25:
         return best[1], best[2]
-    medium = cv2.imdecode(data, cv2.IMREAD_REDUCED_GRAYSCALE_4)
-    counts = _orb_inliers(medium, refs)
+    counts = _orb_inliers(medium_fn(), refs)
     order = sorted(range(len(counts)), key=lambda p: counts[p], reverse=True)
     top = counts[order[0]]
     runner_up = counts[order[1]] if len(order) > 1 else 0
@@ -446,32 +455,75 @@ def classify_page(f, refs):
     return None, False
 
 
-def group_a4_pages(files_sorted, classes, n_pages):
-    """A4 ispis: svaka slika je jedna stranica. Nova anketa počinje stranicom 1 (ili kad se stranica
-    ponovi). Vraća (ankete, napomene); stranica koja nedostaje je None."""
+def half(img, part):
+    """Lijeva ('L') ili desna ('R') polovica A3 slike; None = cijela slika."""
+    if part is None:
+        return img
+    w = img.shape[1]
+    return img[:, :w // 2] if part == "L" else img[:, w // 2:]
+
+
+def classify_scan(f, refs):
+    """Stranice obrasca na jednoj slici: lista (dio slike, stranica, okrenuta).
+
+    Položena slika (šira nego viša) je A3 arak s dvije stranice - svaka polovica se prepoznaje
+    zasebno; uspravna slika je jedna A4 stranica. Neprepoznate/prazne polovice se izostavljaju."""
+    data = np.frombuffer(f.getvalue(), np.uint8)
+    small = cv2.imdecode(data, cv2.IMREAD_REDUCED_GRAYSCALE_8)
+    if small is None:
+        return []
+    medium = {}
+
+    def medium_part(part):
+        if "img" not in medium:
+            medium["img"] = cv2.imdecode(data, cv2.IMREAD_REDUCED_GRAYSCALE_4)
+        return half(medium["img"], part)
+
+    parts = ("L", "R") if small.shape[1] > small.shape[0] else (None,)
+    found = []
+    for part in parts:
+        page, rotated = _classify_gray(half(small, part), lambda p=part: medium_part(p), refs)
+        if page is not None:
+            found.append((part, page, rotated))
+    return sorted(found, key=lambda item: item[1])  # Naopako skeniran A3: stranice ipak redom
+
+
+def group_pages(files_sorted, classes, n_pages):
+    """Slaže prepoznate stranice u ankete. Nova anketa počinje stranicom 1 (ili kad se stranica
+    ponovi / dođe ranija stranica). Vraća (ankete, napomene); stranica koja nedostaje je None."""
     units, notes, current = [], [], None
-    for f, (page, rotated) in zip(files_sorted, classes):
-        if page is None:
+    for f, found in zip(files_sorted, classes):
+        if not found:
             notes.append(f"**{f.name}** nije prepoznata kao stranica obrasca - preskočena.")
             continue
-        if current is None or page == 0 or current[page] is not None or \
-                any(current[p] is not None for p in range(page + 1, n_pages)):
-            current = [None] * n_pages
-            units.append(current)
-        current[page] = (f, rotated)
+        for part, page, rotated in found:
+            if current is None or page == 0 or current[page] is not None or \
+                    any(current[p] is not None for p in range(page + 1, n_pages)):
+                current = [None] * n_pages
+                units.append(current)
+            current[page] = (f, part, rotated)
     result = []
     for pages in units:
-        names = [entry[0].name for entry in pages if entry]
+        names = list(dict.fromkeys(entry[0].name for entry in pages if entry))
         missing = [str(p + 1) for p, entry in enumerate(pages) if entry is None]
         if missing:
             notes.append(f"Anketa **{' + '.join(names)}**: nedostaje stranica {', '.join(missing)} "
                          "(njezini odgovori ostaju prazni - upišite ih ručno ako imate papir).")
         result.append((" + ".join(names), pages))
-    rotated = [entry[0].name for pages in units for entry in pages if entry and entry[1]]
+    rotated = list(dict.fromkeys(entry[0].name for pages in units for entry in pages if entry and entry[2]))
     if rotated:
         notes.append(f"Okrenute naopako (program ih je okrenuo): {', '.join(rotated[:10])}"
                      + (" …" if len(rotated) > 10 else ""))
     return result, notes
+
+
+def scan_formats(units):
+    """Koliko je anketa na A3, A4 ili miješano - za kratku obavijest nakon učitavanja."""
+    counts = Counter()
+    for _label, pages in units:
+        kinds = {"A3" if entry[1] else "A4" for entry in pages if entry}
+        counts["miješano" if len(kinds) > 1 else next(iter(kinds))] += 1
+    return counts
 
 
 def decode_image(f):
@@ -485,15 +537,17 @@ def align_unit(scan_mode, unit_files, ref_images):
     if scan_mode == "A4_TWO_PAGES":
         # Dvije A4 slike po anketi: 1. slika = Str. 1, 2. slika = Str. 2
         return [align_to_reference(decode_image(f), ref) for f, ref in zip(unit_files, ref_images)]
-    if scan_mode == "A4_PAGES":
-        # A4 ispis A3 obrasca: (slika, okrenuta) po stranici; stranica koja nedostaje = prazan predložak
-        pages = []
+    if scan_mode == "AUTO_PAGES":
+        # (slika, dio slike, okrenuta) po stranici; stranica koja nedostaje = prazan predložak
+        pages, decoded = [], {}
         for entry, ref in zip(unit_files, ref_images):
             if entry is None:
                 pages.append(cv2.cvtColor(ref, cv2.COLOR_GRAY2BGR))
                 continue
-            f, rotated = entry
-            img = decode_image(f)
+            f, part, rotated = entry
+            if id(f) not in decoded:
+                decoded[id(f)] = decode_image(f)  # A3 unutarnja slika nosi dvije stranice
+            img = half(decoded[id(f)], part)
             pages.append(align_to_reference(cv2.rotate(img, cv2.ROTATE_180) if rotated else img, ref))
         return pages
     # A3_TWO_IMAGES: 1. slika (desna polovica = Str. 1), 2. slika (lijevo = Str. 2, desno = Str. 3)
@@ -688,28 +742,30 @@ def load_programs():
 PROGRAMS = load_programs()
 
 scan_mode = cfg["scan_mode"]
-if cfg.get("a4_option"):
-    # Obrazac je inače A3; neke sastavnice ga ispisuju na A4 (svaka stranica zaseban list)
-    if st.toggle("📄 Ankete su ispisane na **A4** (svaka stranica skenirana zasebno)", key=f"a4|{form_type}",
-                 help="Uključite kad sastavnica nije imala A3 pisač. Program sam prepoznaje koja je slika "
-                      "1., 2. ili 3. stranica i javlja ako neka stranica nedostaje."):
-        scan_mode = "A4_PAGES"
+if cfg.get("auto_pages"):
+    # Obrazac je A3, ali ga neke sastavnice ispisuju na A4 - format se prepoznaje za svaku sliku
+    scan_mode = "AUTO_PAGES"
 UPLOAD_HINTS = {
-    "A3_TWO_IMAGES": "A3 obrazac: parovi slika redom, naslovna pa unutarnja",
+    "A3_TWO_IMAGES": "A3 obrazac: parovi slika strogo redom, naslovna pa unutarnja",
     "A4_TWO_PAGES": "parovi slika redom, 1. pa 2. stranica",
     "A4_SINGLE": "jedna slika po anketi",
-    "A4_PAGES": "A4 ispis: sve stranice redom kako su skenirane (1., 2., 3. stranica)",
+    "AUTO_PAGES": "A3 i A4 ispis mogu biti zajedno - sve slike redom kako su skenirane",
 }
 uploaded_files = st.file_uploader(
     f"2. Učitajte skenirane JPEG slike ({UPLOAD_HINTS.get(scan_mode, '')}):",
     type=["jpg", "jpeg", "png"], accept_multiple_files=True
 )
+if cfg.get("auto_pages"):
+    if st.toggle("Bez prepoznavanja stranica (samo A3, parovi slika strogo po redu)", key=f"fixed|{form_type}",
+                 help="Program inače sam prepoznaje je li slika A3 arak ili A4 stranica i koja je stranica "
+                      "obrasca. Uključite samo ako prepoznavanje na nekim skenovima ne radi dobro."):
+        scan_mode = cfg["scan_mode"]
 
 files_sorted, units, measurements, all_rows, proc_key = [], [], [], [], None
 if uploaded_files:
     files_sorted = sorted(uploaded_files, key=lambda f: f.name)
     file_ids = tuple(getattr(f, "file_id", None) or f"{f.name}:{f.size}" for f in files_sorted)
-    if scan_mode == "A4_PAGES":
+    if scan_mode == "AUTO_PAGES":
         # Prepoznavanje stranica radi se jednom po učitanim datotekama
         page_cache = st.session_state.get("omr_page_classes")
         if page_cache is None or page_cache["key"] != (form_type, file_ids):
@@ -717,12 +773,16 @@ if uploaded_files:
             progress = st.progress(0.0, text="Prepoznajem stranice...")
             classes = []
             for i, f in enumerate(files_sorted, start=1):
-                classes.append(classify_page(f, page_refs))
+                classes.append(classify_scan(f, page_refs))
                 progress.progress(i / len(files_sorted), text=f"Prepoznajem stranice... {i}/{len(files_sorted)}")
             progress.empty()
             page_cache = {"key": (form_type, file_ids), "classes": classes}
             st.session_state.omr_page_classes = page_cache
-        units, page_notes = group_a4_pages(files_sorted, page_cache["classes"], len(ref_images))
+        units, page_notes = group_pages(files_sorted, page_cache["classes"], len(ref_images))
+        formats = scan_formats(units)
+        if units:
+            st.caption(f"Prepoznato **{len(units)}** anketa: " + ", ".join(
+                f"{n} × {kind}" for kind, n in sorted(formats.items())) + ".")
         if page_notes:
             with st.expander(f"⚠️ Napomene o stranicama ({len(page_notes)})", expanded=len(page_notes) <= 5):
                 for note in page_notes:
