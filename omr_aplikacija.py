@@ -1151,7 +1151,18 @@ if uploaded_files:
                         form_type, final_df, info_values, report_semester, report_year, report_date
                     )
                 stored = {"key": report_key, "pdf": pdf, "warnings": report_warnings,
-                          "name": reports.report_file_name(form_type, info_values)}
+                          "name": reports.report_file_name(form_type, info_values), "drive": None}
+                # Izvještaj ide i u Google Drive, u istu mapu kao skupni izvještaji
+                # (Izvještaji/<obrazac>/<fakultet>/); isti naziv zamjenjuje stari - bez duplikata
+                if drive_service is not None:
+                    try:
+                        with st.spinner("Spremam izvještaj u Google Drive..."):
+                            file_link, folder_link = drive.save_report(
+                                drive_service, form_type, reports.safe_file_part(info_values.get("Fakultet", "")),
+                                stored["name"], pdf)
+                        stored["drive"] = {"file": file_link, "folder": folder_link}
+                    except Exception as e:
+                        stored["drive"] = {"error": str(e)}
                 st.session_state.batch_report = stored
             except Exception as e:
                 st.error(f"Izrada izvještaja nije uspjela: {e}")
@@ -1160,6 +1171,14 @@ if uploaded_files:
                 st.warning(w)
             st.download_button("⬇️ Preuzmi PDF izvještaj", data=stored["pdf"], file_name=stored["name"],
                                mime="application/pdf")
+            saved = stored.get("drive")
+            if saved and saved.get("error"):
+                st.error(f"Izvještaj nije spremljen u Google Drive: {saved['error']}. Možete ga preuzeti gumbom iznad.")
+            elif saved:
+                st.success(f"☁️ Izvještaj je spremljen i u Google Drive: [{stored['name']}]({saved['file']}) · "
+                           f"[mapa izvještaja]({saved['folder']})")
+            elif drive_service is None:
+                st.caption("Google Drive nije povezan - izvještaj je samo za preuzimanje.")
 
     # Spremanje serije u Google Drive
     if drive_service is not None and all_rows:
