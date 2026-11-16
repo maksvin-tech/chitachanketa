@@ -606,6 +606,8 @@ class _Builder:
         program = self.info.get("Studijski program", "")
         self.p("2. Rezultati ankete", "h1")
         self.p("2.1. Struktura uzorka prema anketiranim jedinicama i studijima", "h2")
+        if self.info.get("zbirni") and "Studijski program" in self.df.columns:
+            return self._sample_combined(nm, nz, nn)
         self.p(_esc(f"Studij {program} ({s['level']} studij) obuhvaća {n} anketnih upitnika. Kriterij za ispis "
                     f"izvješća je minimalno {MIN_SURVEYS} ispunjenih anketnih upitnika."))
         self.p(_esc(f"U tablici 1. prikazan je broj anketnih upitnika po anketiranoj jedinici i spolu anketiranih "
@@ -623,6 +625,39 @@ class _Builder:
         self.story.append(KeepTogether([
             self.caption("Tablica 1. Broj anketiranih studenata po anketiranoj jedinici"),
             _grid_table(data, [4.2 * cm] + [1.25 * cm, 1.45 * cm] * 4, header_rows=2, spans=spans, bold_last=False),
+            Spacer(1, 0.3 * cm)]))
+
+    def _sample_combined(self, nm, nz, nn):
+        """Zbirno izvješće fakulteta: svi studijski programi jedne razine zajedno, tablica po programima."""
+        s, g, n = self.spec, self.gender, self.n
+        names = self.df["Studijski program"].fillna("").astype(str).str.strip()
+        programs = sorted(p for p in names.unique() if p)
+        self.p(_esc(f"Zbirno izvješće obuhvaća sve studijske programe ({len(programs)}) na razini {s['level_gen']} "
+                    f"studija, s ukupno {n} anketnih upitnika. Rezultati u nastavku odnose se na sve anketirane "
+                    f"studente zajedno."))
+        self.p(_esc(f"U tablici 1. prikazan je broj anketnih upitnika po studijskom programu i spolu anketiranih "
+                    f"studenata. U anketi je sudjelovalo {n} studenata: {np_text(nm, n)} muških, {np_text(nz, n)} "
+                    f"ženskih, a za {np_text(nn, n)} spol nije označen."))
+        self.no = 1
+        data = [[Paragraph(_esc(self.info.get("Fakultet", "") or "Studij"), self.st["cell_sb"]),
+                 "M", "", "Ž", "", "Nedostaje", "", "Ukupno", ""],
+                ["", "N", "%", "N", "%", "N", "%", "N", "%"]]
+        for prog in programs:
+            mask = (names == prog).values
+            gp = g[mask]
+            row = [Paragraph(_esc(prog), self.st["cell_s"])]
+            counts = (int((gp == 1).sum()), int((gp == 0).sum()), int(gp.isna().sum()), int(mask.sum()))
+            for c in counts:
+                row += [str(c), fmt(c / counts[3] * 100, 1) + "%"]
+            data.append(row)
+        total = [Paragraph("<b>Ukupno</b>", self.st["cell_s"])]
+        for c in (nm, nz, nn, n):
+            total += [str(c), fmt(c / n * 100, 1) + "%"]
+        data.append(total)
+        spans = [((0, 0), (0, 1)), ((1, 0), (2, 0)), ((3, 0), (4, 0)), ((5, 0), (6, 0)), ((7, 0), (8, 0))]
+        self.story.append(KeepTogether([
+            self.caption("Tablica 1. Broj anketiranih studenata po studijskom programu"),
+            _grid_table(data, [4.2 * cm] + [1.25 * cm, 1.45 * cm] * 4, header_rows=2, spans=spans, bold_last=True),
             Spacer(1, 0.3 * cm)]))
 
     def a_items(self):

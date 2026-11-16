@@ -623,7 +623,7 @@ def shrink_for_preview(img_bgr, max_width=1200):
 st.set_page_config(page_title="UNIZG OMR Čitač Anketa", layout="wide")
 st.title("📋 OMR Čitač Anketa – Sveučilište u Zagrebu")
 
-form_type = st.sidebar.selectbox("1. Odaberite vrstu obrasca:", list(CONFIG.keys()))
+form_type = st.sidebar.selectbox("Vrsta obrasca:", list(CONFIG.keys()))
 sensitivity = st.sidebar.slider("Osjetljivost na kemijsku olovku:", 0.10, 0.35, 0.18, 0.01)
 
 # --- Google Drive (spremanje u oblak) ---
@@ -763,7 +763,7 @@ def email_block(key, faculty, links, make_message, kind=None):
     good, rest = kontakti.suggestions(contacts, faculty, kind or MAIL_KIND)
     options = good + rest
     if not good:
-        st.warning(f"Za „{faculty}” nema kontakta za ovu vrstu ankete - odaberite primatelja s popisa.")
+        st.warning(f"Za „{faculty}” nema kontakta u popisu - odaberite primatelja ili ga dodajte u tablicu kontakata.")
     pick = st.selectbox(
         "Primatelj", range(len(options)), key=f"{key}_to|{faculty}",
         format_func=lambda i: ("⭐ " if i < len(good) else "") + kontakti.label(options[i]),
@@ -772,6 +772,20 @@ def email_block(key, faculty, links, make_message, kind=None):
     contact = options[pick]
     if contact.get("Napomena"):
         st.caption(f"Napomena uz kontakt: {contact['Napomena']}")
+
+    # Kopija (CC): s popisa kontakata (prvo isti fakultet) i/ili upisane adrese
+    by_email = {r["E-mail"]: r for r in options}
+    cc_options = [r["E-mail"] for r in options if r["E-mail"] != contact["E-mail"]]
+    cc_pick = st.multiselect("Kopija (CC) s popisa kontakata", cc_options, key=f"{key}_cc|{faculty}",
+                             format_func=lambda e: kontakti.label(by_email[e]),
+                             placeholder="Odaberite jednu ili više osoba...")
+    cc_typed = st.text_input("Kopija (CC) - druge adrese, odvojene zarezom", key=f"{key}_cc_extra|{faculty}",
+                             placeholder="npr. ime.prezime@unizg.hr, drugi@fakultet.hr")
+    typed = [a.strip() for a in re.split(r"[,;\s]+", cc_typed) if a.strip()]
+    bad = [a for a in typed if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", a)]
+    if bad:
+        st.warning("Ove adrese nisu ispravne i neće biti u kopiji: " + ", ".join(bad))
+    cc = list(dict.fromkeys(cc_pick + [a for a in typed if a not in bad and a != contact["E-mail"]]))
     chosen = [(d, u) for d, u, on in links
               if st.checkbox(f"Poveznica: {d}", value=on, key=f"{key}_link|{d}")]
     signature = st.checkbox("Dodaj potpis (isključite ako ga Outlook dodaje sam)", value=True, key=f"{key}_sig")
@@ -783,7 +797,7 @@ def email_block(key, faculty, links, make_message, kind=None):
     body = st.text_area("Tekst poruke (može se mijenjati)", value=body, height=260, key=f"{key}_body|{hash(fp)}")
 
     ready_key = f"{key}_ready"
-    current = (contact["E-mail"], subject, body)
+    current = (contact["E-mail"], tuple(cc), subject, body)
     if st.button("✉️ Pripremi e-mail", key=f"{key}_prepare", disabled=not chosen):
         try:
             shared = st.session_state.setdefault("shared_links", set())
@@ -792,7 +806,7 @@ def email_block(key, faculty, links, make_message, kind=None):
                     if url not in shared:
                         drive.share_with_link(drive_service, url)
                         shared.add(url)
-            st.session_state[ready_key] = (current, kontakti.mailto(contact["E-mail"], subject, body))
+            st.session_state[ready_key] = (current, kontakti.mailto(contact["E-mail"], subject, body, cc=",".join(cc)))
         except Exception as e:
             st.error(f"Poveznice se ne mogu podijeliti: {e}")
     if not chosen:
@@ -801,7 +815,8 @@ def email_block(key, faculty, links, make_message, kind=None):
     if ready and ready[0] == current:
         st.link_button("📧 Otvori u Outlooku", ready[1], type="primary")
         st.caption(f"Poruka se otvara u Outlooku na ovom računalu, od računa koji je ondje prijavljen. "
-                   f"Provjerite je i pritisnite Pošalji. Ako se Outlook ne otvori, primatelj je: {contact['E-mail']}")
+                   f"Provjerite je i pritisnite Pošalji. Ako se Outlook ne otvori, primatelj je: {contact['E-mail']}"
+                   + (f"; kopija: {', '.join(cc)}" if cc else ""))
 
 
 cfg = CONFIG[form_type]
@@ -824,625 +839,500 @@ def load_programs():
 
 PROGRAMS = load_programs()
 
-scan_mode = cfg["scan_mode"]
-if cfg.get("auto_pages"):
-    # Obrazac je A3, ali ga neke sastavnice ispisuju na A4 - format se prepoznaje za svaku sliku
-    scan_mode = "AUTO_PAGES"
-UPLOAD_HINTS = {
-    "A3_TWO_IMAGES": "A3 obrazac: parovi slika strogo redom, naslovna pa unutarnja",
-    "A4_TWO_PAGES": "parovi slika redom, 1. pa 2. stranica",
-    "A4_SINGLE": "jedna slika po anketi",
-    "AUTO_PAGES": "A3 i A4 ispis mogu biti zajedno - sve slike redom kako su skenirane",
-}
-uploaded_files = st.file_uploader(
-    f"2. Učitajte skenirane JPEG slike ({UPLOAD_HINTS.get(scan_mode, '')}):",
-    type=["jpg", "jpeg", "png"], accept_multiple_files=True
-)
-if cfg.get("auto_pages"):
-    if st.toggle("Bez prepoznavanja stranica (samo A3, parovi slika strogo po redu)", key=f"fixed|{form_type}",
-                 help="Program inače sam prepoznaje je li slika A3 arak ili A4 stranica i koja je stranica "
-                      "obrasca. Uključite samo ako prepoznavanje na nekim skenovima ne radi dobro."):
-        scan_mode = cfg["scan_mode"]
+# ==============================================================================
+# KORACI ZA STUDENTE: 1 skenovi -> 2 ispravci -> 3 izvještaj i Drive -> 4 skupni izvještaji -> 5 slanje
+# ==============================================================================
+step1, step2, step3, step4, step5 = st.tabs([
+    "1️⃣ Učitaj skenove", "2️⃣ Provjera i ispravci", "3️⃣ Izvještaj i spremanje",
+    "4️⃣ Skupni izvještaji fakulteta", "5️⃣ Slanje fakultetu",
+])
 
-files_sorted, units, measurements, all_rows, proc_key = [], [], [], [], None
-if uploaded_files:
-    files_sorted = sorted(uploaded_files, key=lambda f: f.name)
-    file_ids = tuple(getattr(f, "file_id", None) or f"{f.name}:{f.size}" for f in files_sorted)
-    if scan_mode == "AUTO_PAGES":
-        # Prepoznavanje stranica radi se jednom po učitanim datotekama
-        page_cache = st.session_state.get("omr_page_classes")
-        if page_cache is None or page_cache["key"] != (form_type, file_ids):
-            page_refs = page_references(ref_images)
-            progress = st.progress(0.0, text="Prepoznajem stranice...")
-            classes = []
-            for i, f in enumerate(files_sorted, start=1):
-                classes.append(classify_scan(f, page_refs))
-                progress.progress(i / len(files_sorted), text=f"Prepoznajem stranice... {i}/{len(files_sorted)}")
-            progress.empty()
-            page_cache = {"key": (form_type, file_ids), "classes": classes}
-            st.session_state.omr_page_classes = page_cache
-        units, page_notes = group_pages(files_sorted, page_cache["classes"], len(ref_images))
-        formats = scan_formats(units)
-        if units:
-            st.caption(f"Prepoznato **{len(units)}** anketa: " + ", ".join(
-                f"{n} × {kind}" for kind, n in sorted(formats.items())) + ".")
-        if page_notes:
-            with st.expander(f"⚠️ Napomene o stranicama ({len(page_notes)})", expanded=len(page_notes) <= 5):
-                for note in page_notes:
-                    st.markdown("- " + note)
-    else:
-        units = scan_units(scan_mode, files_sorted)
-        if units is None:
-            st.error(f"Način skeniranja **{scan_mode}** za ovaj obrazac još nije podržan.")
-            units = []
-        elif scan_mode in ("A3_TWO_IMAGES", "A4_TWO_PAGES") and len(files_sorted) % 2:
-            st.warning(f"Učitan je neparan broj slika ({len(files_sorted)}) - zadnja slika "
-                       f"**{files_sorted[-1].name}** nema par i nije očitana. Provjerite nedostaje li neka stranica.")
+with step1:
+    st.markdown("### 1️⃣ Učitaj skenirane ankete")
+    st.caption(f"Obrazac: **{form_type}** (promjena u bočnoj traci). Učitajte sve skenove jedne serije (jedan studijski program ili jedan nastavnik na kolegiju), zatim provjerite podatke o anketiranju.")
+    scan_mode = cfg["scan_mode"]
+    if cfg.get("auto_pages"):
+        # Obrazac je A3, ali ga neke sastavnice ispisuju na A4 - format se prepoznaje za svaku sliku
+        scan_mode = "AUTO_PAGES"
+    UPLOAD_HINTS = {
+        "A3_TWO_IMAGES": "A3 obrazac: parovi slika strogo redom, naslovna pa unutarnja",
+        "A4_TWO_PAGES": "parovi slika redom, 1. pa 2. stranica",
+        "A4_SINGLE": "jedna slika po anketi",
+        "AUTO_PAGES": "A3 i A4 ispis mogu biti zajedno - sve slike redom kako su skenirane",
+    }
+    uploaded_files = st.file_uploader(
+        f"Učitajte skenirane JPEG slike ({UPLOAD_HINTS.get(scan_mode, '')}):",
+        type=["jpg", "jpeg", "png"], accept_multiple_files=True
+    )
+    if cfg.get("auto_pages"):
+        if st.toggle("Bez prepoznavanja stranica (samo A3, parovi slika strogo po redu)", key=f"fixed|{form_type}",
+                     help="Program inače sam prepoznaje je li slika A3 arak ili A4 stranica i koja je stranica "
+                          "obrasca. Uključite samo ako prepoznavanje na nekim skenovima ne radi dobro."):
+            scan_mode = cfg["scan_mode"]
 
-    # Skupi korak (poravnanje + mjerenje kružića) radi se samo JEDNOM po učitanim datotekama.
-    # Ispravci u tablici, pregled i promjena osjetljivosti koriste spremljena mjerenja,
-    # a slike se ne čuvaju u memoriji.
-    proc_key = (form_type, scan_mode, file_ids)
-    cache = st.session_state.get("omr_cache")
-    if cache is None or cache["key"] != proc_key:
-        measurements = []
-        if units:
-            progress = st.progress(0.0, text="Očitavam ankete...")
-            for i, (_label, unit_files) in enumerate(units, start=1):
-                pages = align_unit(scan_mode, unit_files, ref_images)
-                measurements.append(measure_ratios(pages, pages_rows, scan_spec, scale))
-                progress.progress(i / len(units), text=f"Očitavam ankete... {i}/{len(units)}")
-            progress.empty()
-        cache = {"key": proc_key, "measurements": measurements}
-        st.session_state.omr_cache = cache
-        st.session_state.pop("omr_preview", None)
-    measurements = cache["measurements"]
-
-    for (label, _files), m in zip(units, measurements):
-        codes, answers = split_codes(cfg, answers_from_ratios(m, scan_spec, sensitivity))
-        all_rows.append([label] + codes + answers)
-
-# --- 3. Podaci o anketiranju (idu na naslovnicu izvještaja i u ime serije) ---
-st.subheader("3. Podaci o anketiranju")
-info_fields = cfg["info_fields"]
-has_code_field = any(f.get("code") for f in info_fields)
-program_col = next((1 + i for i, g in enumerate(code_grids) if g.get("program")), None)  # Stupac u all_rows
-read_codes = [row[program_col] for row in all_rows] if program_col else []
-
-
-def info_key(name):
-    return f"info|{form_type}|{name}"
-
-
-def fill_program(code, entry):
-    """Upisuje kod, fakultet i naziv programa iz popisa kodova (polja se i dalje mogu mijenjati)."""
-    st.session_state[info_key(CODE_FIELD)] = code
-    st.session_state[info_key("Fakultet")] = entry["fakultet"]
-    st.session_state[info_key("Studijski program")] = entry["program"]
-
-
-def on_code_typed():
-    code = st.session_state.get(info_key(CODE_FIELD), "").strip()
-    entry = programi.lookup(PROGRAMS, code, form_type) if re.fullmatch(r"\d{1,4}", code) else None
-    if entry:
-        fill_program(code.zfill(4), entry)
-
-
-if has_code_field:
-    found = Counter(c for c in read_codes if c)
-    # Novi skenovi: polja se popunjavaju iz koda koji je zacrnjen na većini anketa
-    if proc_key and st.session_state.get(f"autofill|{form_type}") != proc_key:
-        st.session_state[f"autofill|{form_type}"] = proc_key
-        if found:
-            top = found.most_common(1)[0][0]
-            entry = programi.lookup(PROGRAMS, top, form_type)
-            if entry:
-                fill_program(top, entry)
-            else:
-                st.session_state[info_key(CODE_FIELD)] = top
-    if read_codes:
-        unread = sum(1 for c in read_codes if not c)
-        msg = "Kod studija očitan s anketa: " + (", ".join(f"**{c}** ({n})" for c, n in found.most_common(5)) or "nijedan")
-        if unread:
-            msg += f"; nije očitan na {unread} anketa (prazno ili nejasno)"
-        st.caption(msg + ".")
-
-    if PROGRAMS:
-        search_options = programi.choices(PROGRAMS, form_type)
-        search_key = f"search|{form_type}"
-
-        def on_search():
-            idx = st.session_state.get(search_key)
-            if idx is not None:
-                fill_program(*search_options[idx])
-                st.session_state.pop(search_key, None)  # Tražilica se isprazni za sljedeće traženje
-
-        st.selectbox(
-            "🔎 Pronađite studijski program po kodu ili nazivu", range(len(search_options)), index=None,
-            format_func=lambda i: programi.label(*search_options[i]),
-            placeholder="Upišite kod ili dio naziva...", key=search_key, on_change=on_search,
-        )
-
-info_values = {}
-for start in range(0, len(info_fields), 3):
-    for col, field in zip(st.columns(3), info_fields[start:start + 3]):
-        key = info_key(field["name"])
-        label = field["name"] + (" (neobavezno)" if field.get("optional") else "")
-        if field.get("choices"):
-            info_values[field["name"]] = col.selectbox(label, field["choices"], key=key)
-        elif field.get("code"):
-            info_values[field["name"]] = col.text_input(
-                field["name"], key=key, max_chars=4, on_change=on_code_typed,
-                help="4 znamenke s 1. stranice obrasca. Fakultet i studijski program popunjavaju se iz popisa kodova.",
-            ).strip()
+    files_sorted, units, measurements, all_rows, proc_key = [], [], [], [], None
+    if uploaded_files:
+        files_sorted = sorted(uploaded_files, key=lambda f: f.name)
+        file_ids = tuple(getattr(f, "file_id", None) or f"{f.name}:{f.size}" for f in files_sorted)
+        if scan_mode == "AUTO_PAGES":
+            # Prepoznavanje stranica radi se jednom po učitanim datotekama
+            page_cache = st.session_state.get("omr_page_classes")
+            if page_cache is None or page_cache["key"] != (form_type, file_ids):
+                page_refs = page_references(ref_images)
+                progress = st.progress(0.0, text="Prepoznajem stranice...")
+                classes = []
+                for i, f in enumerate(files_sorted, start=1):
+                    classes.append(classify_scan(f, page_refs))
+                    progress.progress(i / len(files_sorted), text=f"Prepoznajem stranice... {i}/{len(files_sorted)}")
+                progress.empty()
+                page_cache = {"key": (form_type, file_ids), "classes": classes}
+                st.session_state.omr_page_classes = page_cache
+            units, page_notes = group_pages(files_sorted, page_cache["classes"], len(ref_images))
+            formats = scan_formats(units)
+            if units:
+                st.caption(f"Prepoznato **{len(units)}** anketa: " + ", ".join(
+                    f"{n} × {kind}" for kind, n in sorted(formats.items())) + ".")
+            if page_notes:
+                with st.expander(f"⚠️ Napomene o stranicama ({len(page_notes)})", expanded=len(page_notes) <= 5):
+                    for note in page_notes:
+                        st.markdown("- " + note)
         else:
-            info_values[field["name"]] = col.text_input(label, key=key).strip()
-missing_info = [f["name"] for f in info_fields if not f.get("optional") and not info_values[f["name"]]]
+            units = scan_units(scan_mode, files_sorted)
+            if units is None:
+                st.error(f"Način skeniranja **{scan_mode}** za ovaj obrazac još nije podržan.")
+                units = []
+            elif scan_mode in ("A3_TWO_IMAGES", "A4_TWO_PAGES") and len(files_sorted) % 2:
+                st.warning(f"Učitan je neparan broj slika ({len(files_sorted)}) - zadnja slika "
+                           f"**{files_sorted[-1].name}** nema par i nije očitana. Provjerite nedostaje li neka stranica.")
 
-if has_code_field and info_values.get(CODE_FIELD) and PROGRAMS:
-    chosen_code = info_values[CODE_FIELD]
-    entry = programi.lookup(PROGRAMS, chosen_code, form_type)
-    if entry is None:
-        st.warning(f"Kod **{chosen_code}** nije u popisu kodova - provjerite ga ili upišite fakultet i program ručno.")
-    elif entry["razina"] != form_type:
-        st.warning(f"Kod **{chosen_code}** je u popisu kodova *{entry['razina'].lower()}* ({entry['program']}), "
-                   f"a odabran je obrazac **{form_type}**.")
+        # Skupi korak (poravnanje + mjerenje kružića) radi se samo JEDNOM po učitanim datotekama.
+        # Ispravci u tablici, pregled i promjena osjetljivosti koriste spremljena mjerenja,
+        # a slike se ne čuvaju u memoriji.
+        proc_key = (form_type, scan_mode, file_ids)
+        cache = st.session_state.get("omr_cache")
+        if cache is None or cache["key"] != proc_key:
+            measurements = []
+            if units:
+                progress = st.progress(0.0, text="Očitavam ankete...")
+                for i, (_label, unit_files) in enumerate(units, start=1):
+                    pages = align_unit(scan_mode, unit_files, ref_images)
+                    measurements.append(measure_ratios(pages, pages_rows, scan_spec, scale))
+                    progress.progress(i / len(units), text=f"Očitavam ankete... {i}/{len(units)}")
+                progress.empty()
+            cache = {"key": proc_key, "measurements": measurements}
+            st.session_state.omr_cache = cache
+            st.session_state.pop("omr_preview", None)
+        measurements = cache["measurements"]
 
-if uploaded_files:
-    # --- Ispravci se čuvaju zasebno od očitanja (vrijede i kad se promijeni osjetljivost) ---
-    edits = st.session_state.get("omr_edits")
-    if edits is None or edits["key"] != proc_key:
-        edits = {"key": proc_key, "cells": {}, "added": [], "deleted": set(), "table_ver": 0, "manual_ver": 0}
-        st.session_state.omr_edits = edits
-    cells = edits["cells"]
-    ans_cols = answer_columns(cfg)
-    allowed_of = {name: allowed for name, _page, allowed in ans_cols}
-    col_names = [name for name, _page, _allowed in ans_cols]
+        for (label, _files), m in zip(units, measurements):
+            codes, answers = split_codes(cfg, answers_from_ratios(m, scan_spec, sensitivity))
+            all_rows.append([label] + codes + answers)
 
-    def build_table():
-        """Očitanja + ručni ispravci, sve kao tekst ('3.5', 'x', '0061')."""
-        rows, labels = [], []
-        for i, row in enumerate(all_rows):
-            if i in edits["deleted"]:
-                continue
-            rows.append([row[0]] + [clean_answer(v, allowed_of[c]) for c, v in zip(col_names, row[1:])])
-            labels.append(i)
-        for k, lab in enumerate(edits["added"]):
-            if lab not in edits["deleted"]:
-                rows.append([f"Ručno dodana anketa {k + 1}"] + [MISSING if allowed_of[c] else "" for c in col_names])
-                labels.append(lab)
-        df = pd.DataFrame(rows, columns=["Datoteka"] + col_names, index=labels)
-        for (lab, col), value in cells.items():
-            if lab in df.index and col in df.columns:
-                df.at[lab, col] = value
-        return df
+    # --- 3. Podaci o anketiranju (idu na naslovnicu izvještaja i u ime serije) ---
+    st.subheader("Podaci o anketiranju")
+    info_fields = cfg["info_fields"]
+    has_code_field = any(f.get("code") for f in info_fields)
+    program_col = next((1 + i for i, g in enumerate(code_grids) if g.get("program")), None)  # Stupac u all_rows
+    read_codes = [row[program_col] for row in all_rows] if program_col else []
 
-    table_df = build_table()
-    read_df = pd.DataFrame([[r[0]] + [clean_answer(v, allowed_of[c]) for c, v in zip(col_names, r[1:])] for r in all_rows],
-                           columns=["Datoteka"] + col_names)  # Izvorno očitano (za usporedbu)
-    question_cols = [name for name, _p, allowed in ans_cols if allowed]
-    missing_counts = (table_df[question_cols] == MISSING).sum(axis=1) if question_cols else pd.Series(0, index=table_df.index)
-    many_missing = missing_counts[missing_counts >= max(5, 0.3 * len(question_cols))]
 
-    st.subheader("📊 Očitani podaci")
-    st.caption("Ispravke možete upisati izravno u tablicu i spremiti gumbom **💾 Spremi izmjene u tablici**; "
-               "za ankete s puno praznih odgovora koristite **✏️ Ručni unos** ispod tablice - uz sliku obrasca. "
-               "*x* = nedostaje.")
-    table_key = f"omr_table|{edits['table_ver']}"
-    shown_labels = list(table_df.index)
+    def info_key(name):
+        return f"info|{form_type}|{name}"
 
-    def on_table_edit():
-        change = st.session_state.get(table_key, {})
-        for pos, values in change.get("edited_rows", {}).items():
-            lab = shown_labels[int(pos)]
-            for col, value in values.items():
-                if col in allowed_of:
-                    cells[(lab, col)] = clean_answer(value, allowed_of[col])
-        structural = bool(change.get("added_rows") or change.get("deleted_rows"))
-        for new_row in change.get("added_rows", []):
-            lab = len(all_rows) + len(edits["added"])
-            edits["added"].append(lab)
-            for col, value in new_row.items():
-                if col in allowed_of:
-                    cells[(lab, col)] = clean_answer(value, allowed_of[col])
-        for pos in change.get("deleted_rows", []):
-            edits["deleted"].add(shown_labels[int(pos)])
-        edits["manual_ver"] += 1  # Ručni unos prikazuje nove vrijednosti
-        edits["table_ver"] += 1  # Tablica se iscrtava sa spremljenim vrijednostima
-        n_changes = sum(len(v) for v in change.get("edited_rows", {}).values())
-        st.session_state.omr_saved_msg = ("table", f"Spremljeno: {n_changes} izmjena u tablici"
-                                          + (", dodani/obrisani redci" if structural else "") + ".")
 
-    column_config = {"Datoteka": st.column_config.TextColumn("Datoteka", disabled=True)}
-    for name, _page, allowed in ans_cols:
-        # Svi stupci kao tekst (kao stupac koda) - tablica prihvaća samo dopuštene odgovore
-        column_config[name] = st.column_config.TextColumn(
-            short_question(name), max_chars=4,
-            validate=answer_pattern(allowed) if allowed else r"^\d{0,4}$",
-            help=("Dopušteno: " + ", ".join(allowed)) if allowed else "Kod studija (4 znamenke)",
-        )
-    # Obrazac: dok upisujete, ništa se ne osvježava; sve se sprema tek gumbom
-    with st.form(f"table_form|{edits['table_ver']}", border=False):
-        st.data_editor(table_df.reset_index(drop=True).astype(object), num_rows="dynamic",
-                       use_container_width=True, column_config=column_config, key=table_key)
-        st.form_submit_button("💾 Spremi izmjene u tablici", on_click=on_table_edit)
-    saved_msg = st.session_state.get("omr_saved_msg")
-    if saved_msg and saved_msg[0] == "table":
-        st.success(saved_msg[1])
-        st.session_state.pop("omr_saved_msg", None)
+    def fill_program(code, entry):
+        """Upisuje kod, fakultet i naziv programa iz popisa kodova (polja se i dalje mogu mijenjati)."""
+        st.session_state[info_key(CODE_FIELD)] = code
+        st.session_state[info_key("Fakultet")] = entry["fakultet"]
+        st.session_state[info_key("Studijski program")] = entry["program"]
 
-    if len(many_missing):
-        st.warning(
-            f"**{len(many_missing)}** anketa ima puno praznih odgovora (možda su kružići zaokruženi, a ne "
-            "zacrnjeni): " + ", ".join(f"{table_df.at[lab, 'Datoteka']} ({n})" for lab, n in many_missing.head(10).items())
-            + (" …" if len(many_missing) > 10 else "") + ". Upišite ih u **✏️ Ručni unos** ispod."
-        )
 
-    # Upisane vrijednosti izvan ljestvice (npr. 7 kod pitanja 1-5)
-    invalid = [(table_df.at[lab, "Datoteka"], short_question(col), table_df.at[lab, col])
-               for lab in table_df.index for col in question_cols
-               if table_df.at[lab, col] not in allowed_of[col]]
-    if invalid:
-        st.error("Neispravne vrijednosti (računaju se kao *nedostaje*): " + "; ".join(
-            f"{f} – {q}: '{v}'" for f, q, v in invalid[:10]) + (" …" if len(invalid) > 10 else ""))
+    def on_code_typed():
+        code = st.session_state.get(info_key(CODE_FIELD), "").strip()
+        entry = programi.lookup(PROGRAMS, code, form_type) if re.fullmatch(r"\d{1,4}", code) else None
+        if entry:
+            fill_program(code.zfill(4), entry)
 
-    # Ankete na kojima je zacrnjen drugi kod - možda su zalutale u ovu seriju
-    if program_col and info_values.get(CODE_FIELD) and len(table_df):
-        code_col = code_columns[program_col - 1]
-        codes_now = table_df[code_col].fillna("").astype(str).str.strip()
-        other = table_df[(codes_now != "") & (codes_now != info_values[CODE_FIELD])]
-        if len(other):
-            examples = "; ".join(f"{r['Datoteka']} → {r[code_col]}" for _, r in other.head(8).iterrows())
-            st.warning(
-                f"**{len(other)}** anketa ima drugačiji kod od {info_values[CODE_FIELD]}: {examples}"
-                f"{' …' if len(other) > 8 else ''}. Provjerite pripadaju li ovoj seriji ili ispravite kod u tablici."
+
+    if has_code_field:
+        found = Counter(c for c in read_codes if c)
+        # Novi skenovi: polja se popunjavaju iz koda koji je zacrnjen na većini anketa
+        if proc_key and st.session_state.get(f"autofill|{form_type}") != proc_key:
+            st.session_state[f"autofill|{form_type}"] = proc_key
+            if found:
+                top = found.most_common(1)[0][0]
+                entry = programi.lookup(PROGRAMS, top, form_type)
+                if entry:
+                    fill_program(top, entry)
+                else:
+                    st.session_state[info_key(CODE_FIELD)] = top
+        if read_codes:
+            unread = sum(1 for c in read_codes if not c)
+            msg = "Kod studija očitan s anketa: " + (", ".join(f"**{c}** ({n})" for c, n in found.most_common(5)) or "nijedan")
+            if unread:
+                msg += f"; nije očitan na {unread} anketa (prazno ili nejasno)"
+            st.caption(msg + ".")
+
+        if PROGRAMS:
+            search_options = programi.choices(PROGRAMS, form_type)
+            search_key = f"search|{form_type}"
+
+            def on_search():
+                idx = st.session_state.get(search_key)
+                if idx is not None:
+                    fill_program(*search_options[idx])
+                    st.session_state.pop(search_key, None)  # Tražilica se isprazni za sljedeće traženje
+
+            st.selectbox(
+                "🔎 Pronađite studijski program po kodu ili nazivu", range(len(search_options)), index=None,
+                format_func=lambda i: programi.label(*search_options[i]),
+                placeholder="Upišite kod ili dio naziva...", key=search_key, on_change=on_search,
             )
 
-    # --- ✏️ Ručni unos uz sliku obrasca (crta se samo odabrana anketa) ---
-    if units:
-        st.subheader("✏️ Ručni unos i vizualna provjera")
-        flagged = set(many_missing.index)
-        # Odabir (filtar, anketa, stranica) pamti se između osvježavanja - nakon upisa odgovora
-        # ostajete na istoj anketi i stranici
-        if st.session_state.get("manual_for") != proc_key:
-            st.session_state.manual_for = proc_key
-            st.session_state.manual_only_flagged = bool(flagged)
-            st.session_state.pop("manual_sel", None)
-            st.session_state.manual_snap = {}
-        only_flagged = st.checkbox(f"Prikaži samo ankete s puno praznih odgovora ({len(flagged)})",
-                                   key="manual_only_flagged")
-        alive = [i for i in range(len(units)) if i not in edits["deleted"]]
-        choices = [i for i in alive if not only_flagged or i in flagged]
-        current = st.session_state.get("manual_sel")
-        if current in alive and current not in choices:
-            choices = sorted(choices + [current])  # Ispravljena anketa ostaje odabrana i kad više nije označena
-        if not choices:
-            choices = alive
-        if current not in choices:
-            st.session_state.pop("manual_sel", None)
+    info_values = {}
+    for start in range(0, len(info_fields), 3):
+        for col, field in zip(st.columns(3), info_fields[start:start + 3]):
+            key = info_key(field["name"])
+            label = field["name"] + (" (neobavezno)" if field.get("optional") else "")
+            if field.get("choices"):
+                info_values[field["name"]] = col.selectbox(label, field["choices"], key=key)
+            elif field.get("code"):
+                info_values[field["name"]] = col.text_input(
+                    field["name"], key=key, max_chars=4, on_change=on_code_typed,
+                    help="4 znamenke s 1. stranice obrasca. Fakultet i studijski program popunjavaju se iz popisa kodova.",
+                ).strip()
+            else:
+                info_values[field["name"]] = col.text_input(label, key=key).strip()
+    missing_info = [f["name"] for f in info_fields if not f.get("optional") and not info_values[f["name"]]]
 
-        def unit_label(i):
-            n = int(missing_counts.get(i, 0))
-            return f"{'⚠️ ' if i in flagged else ''}{units[i][0]}  ({n} praznih)"
+    if has_code_field and info_values.get(CODE_FIELD) and PROGRAMS:
+        chosen_code = info_values[CODE_FIELD]
+        entry = programi.lookup(PROGRAMS, chosen_code, form_type)
+        if entry is None:
+            st.warning(f"Kod **{chosen_code}** nije u popisu kodova - provjerite ga ili upišite fakultet i program ručno.")
+        elif entry["razina"] != form_type:
+            st.warning(f"Kod **{chosen_code}** je u popisu kodova *{entry['razina'].lower()}* ({entry['program']}), "
+                       f"a odabran je obrazac **{form_type}**.")
 
-        sel = st.selectbox("Odaberite anketu:", choices, format_func=unit_label, key="manual_sel") if choices else None
-        if sel is not None:
-            preview_key = (proc_key, sel, sensitivity)
-            preview = st.session_state.get("omr_preview")
-            if preview is None or preview["key"] != preview_key:
-                with st.spinner("Pripremam pregled..."):
-                    pages = align_unit(scan_mode, units[sel][1], ref_images)
-                    dbg = draw_debug(pages, pages_rows, scan_spec, scale, measurements[sel], sensitivity)
-                    preview = {"key": preview_key, "images": [shrink_for_preview(d) for d in dbg]}
-                st.session_state.omr_preview = preview
-            st.caption("Zeleno = očitano, narančasto = više oznaka u retku. Pregledajte sve stranice i upišite "
-                       "odgovore (1-5, ocjenu, 0/1 ...) ili *x* ako nema odgovora. **Ništa se ne sprema dok ne "
-                       "kliknete 💾 Spremi** - ako prije toga odaberete drugu anketu, upisi se gube.")
-            saved_msg = st.session_state.get("omr_saved_msg")
-            if saved_msg and saved_msg[0] == "manual":
-                st.success(saved_msg[1])
-                st.session_state.pop("omr_saved_msg", None)
+    if uploaded_files and all_rows:
+        st.info(f"Očitano **{len(all_rows)}** anketa. **Sljedeće: korak 2** - provjera i ispravci.")
 
-            form_id = f"{edits['manual_ver']}|{sensitivity}|{sel}"
-            snaps = st.session_state.setdefault("manual_snap", {})
-            page_editors = []  # (ključ tablice, nazivi pitanja)
-            later = [i for i in choices if i > sel]
-            next_sel = later[0] if later else None
+if uploaded_files:
+    with step2:
+        st.markdown("### 2️⃣ Provjera i ispravci")
+        # --- Ispravci se čuvaju zasebno od očitanja (vrijede i kad se promijeni osjetljivost) ---
+        edits = st.session_state.get("omr_edits")
+        if edits is None or edits["key"] != proc_key:
+            edits = {"key": proc_key, "cells": {}, "added": [], "deleted": set(), "table_ver": 0, "manual_ver": 0}
+            st.session_state.omr_edits = edits
+        cells = edits["cells"]
+        ans_cols = answer_columns(cfg)
+        allowed_of = {name: allowed for name, _page, allowed in ans_cols}
+        col_names = [name for name, _page, _allowed in ans_cols]
 
-            def save_manual(go_next=False, editors=page_editors, lab=sel, nxt=next_sel):
-                n_changes = 0
-                for key, names in editors:
-                    for pos, values in st.session_state.get(key, {}).get("edited_rows", {}).items():
-                        if "Odgovor" in values:
-                            col = names[int(pos)]
-                            cells[(lab, col)] = clean_answer(values["Odgovor"], allowed_of[col])
-                            n_changes += 1
-                edits["manual_ver"] += 1  # Ručni unos se iscrtava sa spremljenim vrijednostima
-                edits["table_ver"] += 1   # Glavna tablica također
-                msg = f"Spremljeno: {n_changes} odgovora za {units[lab][0]}."
-                if go_next and nxt is not None:
-                    st.session_state.manual_sel = nxt
-                    msg += " Prikazana je sljedeća anketa."
-                st.session_state.omr_saved_msg = ("manual", msg)
+        def build_table():
+            """Očitanja + ručni ispravci, sve kao tekst ('3.5', 'x', '0061')."""
+            rows, labels = [], []
+            for i, row in enumerate(all_rows):
+                if i in edits["deleted"]:
+                    continue
+                rows.append([row[0]] + [clean_answer(v, allowed_of[c]) for c, v in zip(col_names, row[1:])])
+                labels.append(i)
+            for k, lab in enumerate(edits["added"]):
+                if lab not in edits["deleted"]:
+                    rows.append([f"Ručno dodana anketa {k + 1}"] + [MISSING if allowed_of[c] else "" for c in col_names])
+                    labels.append(lab)
+            df = pd.DataFrame(rows, columns=["Datoteka"] + col_names, index=labels)
+            for (lab, col), value in cells.items():
+                if lab in df.index and col in df.columns:
+                    df.at[lab, col] = value
+            return df
 
-            def save_buttons(labels):
-                c1, c2, _ = st.columns([1, 1.4, 2])
-                c1.form_submit_button(labels[0], on_click=save_manual, type="primary")
-                c2.form_submit_button(labels[1], on_click=save_manual, kwargs={"go_next": True},
-                                      disabled=next_sel is None)
+        table_df = build_table()
+        read_df = pd.DataFrame([[r[0]] + [clean_answer(v, allowed_of[c]) for c, v in zip(col_names, r[1:])] for r in all_rows],
+                               columns=["Datoteka"] + col_names)  # Izvorno očitano (za usporedbu)
+        question_cols = [name for name, _p, allowed in ans_cols if allowed]
+        missing_counts = (table_df[question_cols] == MISSING).sum(axis=1) if question_cols else pd.Series(0, index=table_df.index)
+        many_missing = missing_counts[missing_counts >= max(5, 0.3 * len(question_cols))]
 
-            # Sve stranice odabrane ankete u jednom obrascu: upisi se ne spremaju dok ne kliknete Spremi
-            with st.form(f"manual_form|{form_id}", border=True):
-                save_buttons(("💾 Spremi", "💾 Spremi i sljedeća anketa ▶"))
-                for page, image in enumerate(preview["images"]):
-                    st.markdown(f"**Stranica {page + 1}**")
-                    img_col, edit_col = st.columns([3, 2])
-                    img_col.image(image, use_container_width=True)
-                    page_cols = [(name, allowed) for name, p, allowed in ans_cols if p == page]
-                    if not page_cols:
-                        continue
-                    manual_key = f"manual|{form_id}|{page}"
-                    if manual_key not in snaps:
-                        snaps[manual_key] = pd.DataFrame({
-                            "Pitanje": [short_question(n) for n, _a in page_cols],
-                            "Očitano": [read_df.at[sel, n] for n, _a in page_cols],
-                            "Odgovor": [table_df.at[sel, n] for n, _a in page_cols],
-                            "Dopušteno": [", ".join(a) if a else "4 znamenke" for _n, a in page_cols],
-                        }).astype(object)
-                    page_editors.append((manual_key, [n for n, _a in page_cols]))
-                    edit_col.data_editor(
-                        snaps[manual_key], hide_index=True, use_container_width=True, key=manual_key,
-                        height=min(36 * (len(page_cols) + 1) + 4, 1400),
-                        column_config={
-                            "Pitanje": st.column_config.TextColumn(disabled=True),
-                            "Očitano": st.column_config.TextColumn(disabled=True, width="small"),
-                            "Odgovor": st.column_config.TextColumn(width="small"),
-                            "Dopušteno": st.column_config.TextColumn(disabled=True),
-                        },
-                    )
-                save_buttons(("💾 Spremi ispravke", "💾 Spremi ispravke i idi na sljedeću ▶"))
+        st.subheader("📊 Očitani podaci")
+        st.caption("Ispravke možete upisati izravno u tablicu i spremiti gumbom **💾 Spremi izmjene u tablici**; "
+                   "za ankete s puno praznih odgovora koristite **✏️ Ručni unos** ispod tablice - uz sliku obrasca. "
+                   "*x* = nedostaje.")
+        table_key = f"omr_table|{edits['table_ver']}"
+        shown_labels = list(table_df.index)
 
-    # Ručni ispravci ulaze u Excel, izvještaj i Google Drive (brojevi kao brojevi, 'x' = nedostaje)
-    edited_df = table_df.copy()
-    for col in question_cols:
-        edited_df[col] = edited_df[col].map(typed_answer)
-    edited_df = edited_df.reset_index(drop=True)
+        def on_table_edit():
+            change = st.session_state.get(table_key, {})
+            for pos, values in change.get("edited_rows", {}).items():
+                lab = shown_labels[int(pos)]
+                for col, value in values.items():
+                    if col in allowed_of:
+                        cells[(lab, col)] = clean_answer(value, allowed_of[col])
+            structural = bool(change.get("added_rows") or change.get("deleted_rows"))
+            for new_row in change.get("added_rows", []):
+                lab = len(all_rows) + len(edits["added"])
+                edits["added"].append(lab)
+                for col, value in new_row.items():
+                    if col in allowed_of:
+                        cells[(lab, col)] = clean_answer(value, allowed_of[col])
+            for pos in change.get("deleted_rows", []):
+                edits["deleted"].add(shown_labels[int(pos)])
+            edits["manual_ver"] += 1  # Ručni unos prikazuje nove vrijednosti
+            edits["table_ver"] += 1  # Tablica se iscrtava sa spremljenim vrijednostima
+            n_changes = sum(len(v) for v in change.get("edited_rows", {}).values())
+            st.session_state.omr_saved_msg = ("table", f"Spremljeno: {n_changes} izmjena u tablici"
+                                              + (", dodani/obrisani redci" if structural else "") + ".")
 
-    # Upisani nazivi dodaju se kao prvi stupci svake ankete u ovoj seriji
-    final_df = edited_df.copy()
-    for pos, (field, value) in enumerate(info_values.items()):
-        final_df.insert(pos, field, value)
+        column_config = {"Datoteka": st.column_config.TextColumn("Datoteka", disabled=True)}
+        for name, _page, allowed in ans_cols:
+            # Svi stupci kao tekst (kao stupac koda) - tablica prihvaća samo dopuštene odgovore
+            column_config[name] = st.column_config.TextColumn(
+                short_question(name), max_chars=4,
+                validate=answer_pattern(allowed) if allowed else r"^\d{0,4}$",
+                help=("Dopušteno: " + ", ".join(allowed)) if allowed else "Kod studija (4 znamenke)",
+            )
+        # Obrazac: dok upisujete, ništa se ne osvježava; sve se sprema tek gumbom
+        with st.form(f"table_form|{edits['table_ver']}", border=False):
+            st.data_editor(table_df.reset_index(drop=True).astype(object), num_rows="dynamic",
+                           use_container_width=True, column_config=column_config, key=table_key)
+            st.form_submit_button("💾 Spremi izmjene u tablici", on_click=on_table_edit)
+        saved_msg = st.session_state.get("omr_saved_msg")
+        if saved_msg and saved_msg[0] == "table":
+            st.success(saved_msg[1])
+            st.session_state.pop("omr_saved_msg", None)
 
-    # Gumb za spremanje u Excel (.xlsx) - izrađuje se u memoriji, bez datoteke na disku
-    st.download_button(
-        "💾 Preuzmi gotovu Excel tablicu (.xlsx)",
-        data=drive.dataframe_to_xlsx_bytes(final_df.drop(columns=["Datoteka"])),
-        file_name=f"{form_type}_rezultati.xlsx",
-        mime=drive.XLSX_MIME
-    )
+        if len(many_missing):
+            st.warning(
+                f"**{len(many_missing)}** anketa ima puno praznih odgovora (možda su kružići zaokruženi, a ne "
+                "zacrnjeni): " + ", ".join(f"{table_df.at[lab, 'Datoteka']} ({n})" for lab, n in many_missing.head(10).items())
+                + (" …" if len(many_missing) > 10 else "") + ". Upišite ih u **✏️ Ručni unos** ispod."
+            )
 
-    # PDF izvještaj za ovu seriju
-    if reports.has_report(form_type) and all_rows:
-        report_key = (form_type, final_df.to_csv(index=False), report_semester, report_year, str(report_date))
-        stored = st.session_state.get("batch_report")
+        # Upisane vrijednosti izvan ljestvice (npr. 7 kod pitanja 1-5)
+        invalid = [(table_df.at[lab, "Datoteka"], short_question(col), table_df.at[lab, col])
+                   for lab in table_df.index for col in question_cols
+                   if table_df.at[lab, col] not in allowed_of[col]]
+        if invalid:
+            st.error("Neispravne vrijednosti (računaju se kao *nedostaje*): " + "; ".join(
+                f"{f} – {q}: '{v}'" for f, q, v in invalid[:10]) + (" …" if len(invalid) > 10 else ""))
+
+        # Ankete na kojima je zacrnjen drugi kod - možda su zalutale u ovu seriju
+        if program_col and info_values.get(CODE_FIELD) and len(table_df):
+            code_col = code_columns[program_col - 1]
+            codes_now = table_df[code_col].fillna("").astype(str).str.strip()
+            other = table_df[(codes_now != "") & (codes_now != info_values[CODE_FIELD])]
+            if len(other):
+                examples = "; ".join(f"{r['Datoteka']} → {r[code_col]}" for _, r in other.head(8).iterrows())
+                st.warning(
+                    f"**{len(other)}** anketa ima drugačiji kod od {info_values[CODE_FIELD]}: {examples}"
+                    f"{' …' if len(other) > 8 else ''}. Provjerite pripadaju li ovoj seriji ili ispravite kod u tablici."
+                )
+
+        # --- ✏️ Ručni unos uz sliku obrasca (crta se samo odabrana anketa) ---
+        if units:
+            st.subheader("✏️ Ručni unos i vizualna provjera")
+            flagged = set(many_missing.index)
+            # Odabir (filtar, anketa, stranica) pamti se između osvježavanja - nakon upisa odgovora
+            # ostajete na istoj anketi i stranici
+            if st.session_state.get("manual_for") != proc_key:
+                st.session_state.manual_for = proc_key
+                st.session_state.manual_only_flagged = bool(flagged)
+                st.session_state.pop("manual_sel", None)
+                st.session_state.manual_snap = {}
+            only_flagged = st.checkbox(f"Prikaži samo ankete s puno praznih odgovora ({len(flagged)})",
+                                       key="manual_only_flagged")
+            alive = [i for i in range(len(units)) if i not in edits["deleted"]]
+            choices = [i for i in alive if not only_flagged or i in flagged]
+            current = st.session_state.get("manual_sel")
+            if current in alive and current not in choices:
+                choices = sorted(choices + [current])  # Ispravljena anketa ostaje odabrana i kad više nije označena
+            if not choices:
+                choices = alive
+            if current not in choices:
+                st.session_state.pop("manual_sel", None)
+
+            def unit_label(i):
+                n = int(missing_counts.get(i, 0))
+                return f"{'⚠️ ' if i in flagged else ''}{units[i][0]}  ({n} praznih)"
+
+            sel = st.selectbox("Odaberite anketu:", choices, format_func=unit_label, key="manual_sel") if choices else None
+            if sel is not None:
+                preview_key = (proc_key, sel, sensitivity)
+                preview = st.session_state.get("omr_preview")
+                if preview is None or preview["key"] != preview_key:
+                    with st.spinner("Pripremam pregled..."):
+                        pages = align_unit(scan_mode, units[sel][1], ref_images)
+                        dbg = draw_debug(pages, pages_rows, scan_spec, scale, measurements[sel], sensitivity)
+                        preview = {"key": preview_key, "images": [shrink_for_preview(d) for d in dbg]}
+                    st.session_state.omr_preview = preview
+                st.caption("Zeleno = očitano, narančasto = više oznaka u retku. Pregledajte sve stranice i upišite "
+                           "odgovore (1-5, ocjenu, 0/1 ...) ili *x* ako nema odgovora. **Ništa se ne sprema dok ne "
+                           "kliknete 💾 Spremi** - ako prije toga odaberete drugu anketu, upisi se gube.")
+                saved_msg = st.session_state.get("omr_saved_msg")
+                if saved_msg and saved_msg[0] == "manual":
+                    st.success(saved_msg[1])
+                    st.session_state.pop("omr_saved_msg", None)
+
+                form_id = f"{edits['manual_ver']}|{sensitivity}|{sel}"
+                snaps = st.session_state.setdefault("manual_snap", {})
+                page_editors = []  # (ključ tablice, nazivi pitanja)
+                later = [i for i in choices if i > sel]
+                next_sel = later[0] if later else None
+
+                def save_manual(go_next=False, editors=page_editors, lab=sel, nxt=next_sel):
+                    n_changes = 0
+                    for key, names in editors:
+                        for pos, values in st.session_state.get(key, {}).get("edited_rows", {}).items():
+                            if "Odgovor" in values:
+                                col = names[int(pos)]
+                                cells[(lab, col)] = clean_answer(values["Odgovor"], allowed_of[col])
+                                n_changes += 1
+                    edits["manual_ver"] += 1  # Ručni unos se iscrtava sa spremljenim vrijednostima
+                    edits["table_ver"] += 1   # Glavna tablica također
+                    msg = f"Spremljeno: {n_changes} odgovora za {units[lab][0]}."
+                    if go_next and nxt is not None:
+                        st.session_state.manual_sel = nxt
+                        msg += " Prikazana je sljedeća anketa."
+                    st.session_state.omr_saved_msg = ("manual", msg)
+
+                def save_buttons(labels):
+                    c1, c2, _ = st.columns([1, 1.4, 2])
+                    c1.form_submit_button(labels[0], on_click=save_manual, type="primary")
+                    c2.form_submit_button(labels[1], on_click=save_manual, kwargs={"go_next": True},
+                                          disabled=next_sel is None)
+
+                # Sve stranice odabrane ankete u jednom obrascu: upisi se ne spremaju dok ne kliknete Spremi
+                with st.form(f"manual_form|{form_id}", border=True):
+                    save_buttons(("💾 Spremi", "💾 Spremi i sljedeća anketa ▶"))
+                    for page, image in enumerate(preview["images"]):
+                        st.markdown(f"**Stranica {page + 1}**")
+                        img_col, edit_col = st.columns([3, 2])
+                        img_col.image(image, use_container_width=True)
+                        page_cols = [(name, allowed) for name, p, allowed in ans_cols if p == page]
+                        if not page_cols:
+                            continue
+                        manual_key = f"manual|{form_id}|{page}"
+                        if manual_key not in snaps:
+                            snaps[manual_key] = pd.DataFrame({
+                                "Pitanje": [short_question(n) for n, _a in page_cols],
+                                "Očitano": [read_df.at[sel, n] for n, _a in page_cols],
+                                "Odgovor": [table_df.at[sel, n] for n, _a in page_cols],
+                                "Dopušteno": [", ".join(a) if a else "4 znamenke" for _n, a in page_cols],
+                            }).astype(object)
+                        page_editors.append((manual_key, [n for n, _a in page_cols]))
+                        edit_col.data_editor(
+                            snaps[manual_key], hide_index=True, use_container_width=True, key=manual_key,
+                            height=min(36 * (len(page_cols) + 1) + 4, 1400),
+                            column_config={
+                                "Pitanje": st.column_config.TextColumn(disabled=True),
+                                "Očitano": st.column_config.TextColumn(disabled=True, width="small"),
+                                "Odgovor": st.column_config.TextColumn(width="small"),
+                                "Dopušteno": st.column_config.TextColumn(disabled=True),
+                            },
+                        )
+                    save_buttons(("💾 Spremi ispravke", "💾 Spremi ispravke i idi na sljedeću ▶"))
+
+        # Ručni ispravci ulaze u Excel, izvještaj i Google Drive (brojevi kao brojevi, 'x' = nedostaje)
+        edited_df = table_df.copy()
+        for col in question_cols:
+            edited_df[col] = edited_df[col].map(typed_answer)
+        edited_df = edited_df.reset_index(drop=True)
+
+        # Upisani nazivi dodaju se kao prvi stupci svake ankete u ovoj seriji
+        final_df = edited_df.copy()
+        for pos, (field, value) in enumerate(info_values.items()):
+            final_df.insert(pos, field, value)
+        st.info("Kad su ispravci spremljeni, **sljedeće: korak 3** - izvještaj i spremanje.")
+
+    with step3:
+        st.markdown("### 3️⃣ Izvještaj i spremanje u Google Drive")
         if missing_info:
-            st.caption(f"Za PDF izvještaj upišite: {', '.join(missing_info)}.")
-        if st.button("📄 Izradi PDF izvještaj", disabled=bool(missing_info) or not report_year):
-            try:
-                with st.spinner("Izrađujem izvještaj..."):
-                    pdf, report_warnings = reports.build_report(
-                        form_type, final_df, info_values, report_semester, report_year, report_date
-                    )
-                stored = {"key": report_key, "pdf": pdf, "warnings": report_warnings,
-                          "name": reports.report_file_name(form_type, info_values), "drive": None}
-                # Izvještaj ide i u Google Drive, u istu mapu kao skupni izvještaji
-                # (Izvještaji/<obrazac>/<fakultet>/); isti naziv zamjenjuje stari - bez duplikata
-                if drive_service is not None:
-                    try:
-                        with st.spinner("Spremam izvještaj u Google Drive..."):
-                            file_link, folder_link = drive.save_report(
-                                drive_service, form_type, reports.safe_file_part(info_values.get("Fakultet", "")),
-                                stored["name"], pdf)
-                        stored["drive"] = {"file": file_link, "folder": folder_link}
-                    except Exception as e:
-                        stored["drive"] = {"error": str(e)}
-                st.session_state.batch_report = stored
-            except Exception as e:
-                st.error(f"Izrada izvještaja nije uspjela: {e}")
-        if stored and stored["key"] == report_key:
-            for w in stored["warnings"]:
-                st.warning(w)
-            st.download_button("⬇️ Preuzmi PDF izvještaj", data=stored["pdf"], file_name=stored["name"],
-                               mime="application/pdf")
-            saved = stored.get("drive")
-            if saved and saved.get("error"):
-                st.error(f"Izvještaj nije spremljen u Google Drive: {saved['error']}. Možete ga preuzeti gumbom iznad.")
-            elif saved:
-                st.success(f"☁️ Izvještaj je spremljen i u Google Drive: [{stored['name']}]({saved['file']}) · "
-                           f"[mapa izvještaja]({saved['folder']})")
-            elif drive_service is None:
-                st.caption("Google Drive nije povezan - izvještaj je samo za preuzimanje.")
-
-    # Spremanje serije u Google Drive
-    if drive_service is not None and all_rows:
-        st.subheader("☁️ Spremanje u Google Drive")
+            st.warning(f"Prvo u koraku 1 upišite podatke o anketiranju: **{', '.join(missing_info)}**.")
+        if not report_year:
+            st.warning("U bočnoj traci (📄 Postavke izvještaja) upišite akademsku godinu.")
+        st.caption("Jedan klik izradi PDF izvještaj i u Google Drive spremi rezultate, skenirane ankete i izvještaj. "
+                   "Ako nakon toga nešto ispravite u koraku 2, kliknite ponovno: zamijenit će se rezultati i "
+                   "izvještaj (skenovi se ne šalju ponovno).")
         batch_key = form_type + "|" + "|".join(f"{f.name}:{f.size}" for f in files_sorted)
         saved_batches = st.session_state.setdefault("saved_batches", {})
         previous = saved_batches.get(batch_key)
-
-        save_scans = st.checkbox("Spremi i izvorne skenove", value=True, disabled=previous is not None)
-        button_label = "☁️ Spremi izmjene u Google Drive" if previous else "☁️ Spremi u Google Drive"
-        if missing_info:
-            st.warning(f"Prije spremanja upišite: **{', '.join(missing_info)}** (gore, pod točkom 2).")
-        if st.button(button_label, type="primary", disabled=bool(missing_info)):
+        report_key = (form_type, final_df.to_csv(index=False), report_semester, report_year, str(report_date))
+        save_scans = st.checkbox("Spremi i skenirane ankete", value=True,
+                                 disabled=previous is not None or drive_service is None)
+        if drive_service is None:
+            go_label = "📄 Izradi PDF izvještaj"
+            st.info("Google Drive nije povezan (bočna traka) - izvještaj se može samo preuzeti.")
+        elif previous:
+            go_label = "📄 Izradi izvještaj i spremi izmjene u Google Drive"
+        else:
+            go_label = "📄 Izradi izvještaj i spremi sve u Google Drive"
+        if st.button(go_label, type="primary", disabled=bool(missing_info) or not report_year or not all_rows):
+            stored = None
             try:
-                with st.spinner("Spremam u Google Drive..."):
-                    scans = None
-                    if save_scans and previous is None:
-                        scans = [(f.name, f.getvalue()) for f in files_sorted]
-                    saved_batches[batch_key] = drive.save_batch(
-                        drive_service, form_type, final_df, scans, previous=previous,
-                        label=" - ".join(info_values[k] for k in cfg.get("batch_label", []) if info_values.get(k)),
-                    )
-                    st.session_state.drive_root_link = drive.root_folder_link(drive_service)
+                with st.spinner("Izrađujem izvještaj..."):
+                    pdf, report_warnings = reports.build_report(
+                        form_type, final_df, info_values, report_semester, report_year, report_date)
+                stored = {"key": report_key, "pdf": pdf, "warnings": report_warnings,
+                          "name": reports.report_file_name(form_type, info_values), "drive": None}
             except Exception as e:
-                st.error(f"Spremanje nije uspjelo: {e}")
+                st.error(f"Izrada izvještaja nije uspjela: {e}")
+            if stored and drive_service is not None:
+                try:
+                    with st.spinner("Spremam u Google Drive..."):
+                        scans = None
+                        if save_scans and previous is None:
+                            scans = [(f.name, f.getvalue()) for f in files_sorted]
+                        saved_batches[batch_key] = drive.save_batch(
+                            drive_service, form_type, final_df, scans, previous=previous,
+                            label=" - ".join(info_values[k] for k in cfg.get("batch_label", []) if info_values.get(k)),
+                        )
+                        file_link, folder_link = drive.save_report(
+                            drive_service, form_type, reports.safe_file_part(info_values.get("Fakultet", "")),
+                            stored["name"], stored["pdf"])
+                        stored["drive"] = {"file": file_link, "folder": folder_link}
+                        st.session_state.drive_root_link = drive.root_folder_link(drive_service)
+                        st.session_state.pop("delivery_reports", None)  # Korak 5 ponovno traži izvještaje
+                except Exception as e:
+                    stored["drive"] = {"error": str(e)}
+            if stored:
+                st.session_state.batch_report = stored
 
-        info = saved_batches.get(batch_key)
-        if info:
-            msg = f"✅ Spremljeno kao serija **{info['batch']}** ({info['rows']} anketa"
-            msg += f", {info['scans_saved']} skenova)." if info["scans_saved"] else ")."
-            if info.get("updated"):
-                msg += " Izmjene su zamijenile raniji Excel ove serije."
-            st.success(msg)
-            links = []
-            if info.get("results_link"):
-                links.append(f"[Excel rezultati]({info['results_link']})")
-            if info.get("scans_link"):
-                links.append(f"[Mapa sa skenovima]({info['scans_link']})")
-            if links:
-                st.markdown(" · ".join(links))
-
-        # E-mail fakultetu: poveznice na izvještaj (i skenove) u Google Driveu
         stored = st.session_state.get("batch_report")
-        report_link = None
-        if stored and reports.has_report(form_type) and stored["key"] == report_key:
-            report_link = (stored.get("drive") or {}).get("file")
-        if not report_link:
-            st.caption("✉️ Kad izradite PDF izvještaj (spremi se u Google Drive), ovdje možete složiti e-mail fakultetu.")
-        else:
-            mail_links = [("Izvješće", report_link, True)]
-            if info and info.get("scans_link"):
-                mail_links.append(("Skenirane ankete", info["scans_link"], True))
-            email_block(
-                "mail_batch", info_values.get("Fakultet", ""), mail_links,
-                lambda greet, chosen, sig: kontakti.compose(
-                    MAIL_KIND, info_values, chosen, report_semester, report_year, greet, sig),
-            )
+        if stored and stored["key"] == report_key:
+            for w in stored["warnings"]:
+                st.warning(w)
+            saved = stored.get("drive")
+            info = saved_batches.get(batch_key)
+            if saved and saved.get("error"):
+                st.error(f"Spremanje u Google Drive nije uspjelo: {saved['error']}. Izvještaj možete preuzeti ispod.")
+            elif saved and info:
+                msg = f"✅ Gotovo. U Google Driveu: rezultati ({info['rows']} anketa)"
+                msg += f", {info['scans_saved']} skeniranih stranica" if info.get("scans_saved") else ""
+                msg += " i PDF izvještaj."
+                st.success(msg)
+                links = [f"[{stored['name']}]({saved['file']})", f"[mapa izvještaja]({saved['folder']})"]
+                if info.get("scans_link"):
+                    links.append(f"[skenirane ankete]({info['scans_link']})")
+                st.markdown(" · ".join(links))
+                st.info("**Sljedeće:** učitajte novu seriju u koraku 1. Kad su spremljeni svi studijski programi "
+                        "fakulteta, idite na korak 4 (za nastavnike odmah na korak 5).")
+            st.download_button("⬇️ Preuzmi PDF izvještaj", data=stored["pdf"], file_name=stored["name"],
+                               mime="application/pdf")
+
+        st.download_button(
+            "⬇️ Preuzmi Excel tablicu rezultata (.xlsx)",
+            data=drive.dataframe_to_xlsx_bytes(final_df.drop(columns=["Datoteka"])),
+            file_name=f"{form_type}_rezultati.xlsx",
+            mime=drive.XLSX_MIME,
+        )
+else:
+    for _tab in (step2, step3):
+        with _tab:
+            st.info("Prvo u koraku 1 učitajte skenirane ankete.")
 
 
-# ==============================================================================
-# 5. SVI SPREMLJENI REZULTATI IZ GOOGLE DRIVEA (osnova za izvještaje)
-# ==============================================================================
-
-if drive_service is not None:
-    st.markdown("---")
-    st.subheader("📚 Svi spremljeni rezultati iz Google Drivea")
-    if st.button(f"Učitaj sve spremljene ankete: {form_type}"):
-        try:
-            with st.spinner("Učitavam iz Google Drivea..."):
-                st.session_state.all_results = (form_type, drive.load_all_results(drive_service, form_type))
-        except Exception as e:
-            st.error(f"Učitavanje nije uspjelo: {e}")
-
-    loaded = st.session_state.get("all_results")
-    if loaded and loaded[0] == form_type:
-        df_all = loaded[1]
-        if df_all.empty:
-            st.info("Za ovaj obrazac još nema spremljenih anketa.")
-        else:
-            st.write(f"Ukupno **{len(df_all)}** anketa iz **{df_all['Serija'].nunique()}** serija.")
-            if "Datoteka" in df_all.columns:
-                dupes = df_all[df_all["Datoteka"].duplicated(keep=False)]
-                if not dupes.empty:
-                    st.warning(
-                        f"Pazite: {dupes['Datoteka'].nunique()} skenova pojavljuje se u više serija "
-                        "(možda su spremljeni dvaput). Provjerite stupce *Serija* i *Datoteka*."
-                    )
-            st.dataframe(df_all, use_container_width=True)
-            st.download_button(
-                "💾 Preuzmi sve rezultate (.xlsx)",
-                data=drive.dataframe_to_xlsx_bytes(df_all),
-                file_name=f"{form_type}_svi_rezultati.xlsx",
-                mime=drive.XLSX_MIME,
-            )
-
-            # --- Svi PDF izvještaji odjednom (jedan izvještaj = jedan nastavnik na jednom kolegiju) ---
-            if reports.has_report(form_type):
-                st.markdown("#### 📄 PDF izvještaji")
-                groups, incomplete = reports.group_surveys(form_type, df_all)
-                if incomplete:
-                    needed = [k for k in reports.REPORTS[form_type]["group_by"] if k != "Identifikacijski ključ"]
-                    st.warning(f"{incomplete} anketa nema upisane sve podatke ({', '.join(needed).lower()}) "
-                               "pa ne ulaze u izvještaje.")
-                min_n = reports.REPORTS[form_type]["min_surveys"]
-                too_small = [g for g in groups if len(g[1]) < min_n]
-                groups = [g for g in groups if len(g[1]) >= min_n]
-                if too_small:
-                    st.info(f"Kriterij za ispis izvješća je najmanje {min_n} anketa. Preskače se: " + "; ".join(
-                        f"{reports.report_file_name(form_type, gi)[:-4]} ({len(gd)})" for gi, gd in too_small))
-                faculties = sorted({g_info["Fakultet"] for g_info, _ in groups})
-                if not groups:
-                    st.info("Nema anketa s upisanim podacima za izvještaje.")
-                else:
-                    chosen = st.selectbox("Fakultet", ["Svi fakulteti"] + faculties, key="bulk_faculty")
-                    selected = [g for g in groups if chosen == "Svi fakulteti" or g[0]["Fakultet"] == chosen]
-                    st.caption(f"Bit će izrađeno **{len(selected)}** izvještaja "
-                               f"({sum(len(d) for _, d in selected)} anketa).")
-                    to_drive = st.checkbox("Spremi izvještaje i u Google Drive (mapa *Izvještaji*, po fakultetima)",
-                                           value=True, key="bulk_to_drive")
-                    if st.button("📄 Izradi izvještaje", type="primary", disabled=not report_year):
-                        import zipfile
-                        zip_buf = io.BytesIO()
-                        problems, used_names, drive_folders = [], set(), {}
-                        progress = st.progress(0.0, text="Izrađujem izvještaje...")
-                        with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
-                            for k, (g_info, g_df) in enumerate(selected, start=1):
-                                name = reports.report_file_name(form_type, g_info)
-                                folder = reports.safe_file_part(g_info["Fakultet"])
-                                base, n_dup = name[:-4], 2
-                                while f"{folder}/{name}" in used_names:  # Isti naziv u istom fakultetu
-                                    extra = g_info.get("Identifikacijski ključ") or str(n_dup)
-                                    name, n_dup = f"{base} ({extra}).pdf", n_dup + 1
-                                used_names.add(f"{folder}/{name}")
-                                try:
-                                    pdf, w = reports.build_report(form_type, g_df, g_info, report_semester,
-                                                                  report_year, report_date)
-                                    zf.writestr(f"{folder}/{name}", pdf)
-                                    problems += [f"{name}: {x}" for x in w]
-                                    if to_drive:
-                                        _, folder_link = drive.save_report(drive_service, form_type, folder, name, pdf)
-                                        drive_folders[folder] = folder_link
-                                except Exception as e:
-                                    problems.append(f"{name}: izvještaj nije izrađen ({e})")
-                                progress.progress(k / len(selected), text=f"Izrađujem izvještaje... {k}/{len(selected)}")
-                        progress.empty()
-                        st.session_state.bulk_reports = {
-                            "form": form_type, "zip": zip_buf.getvalue(), "count": len(selected),
-                            "problems": problems, "folders": drive_folders, "faculty": chosen,
-                            "name": f"Izvjestaji_{reports.safe_file_part(chosen)}.zip",
-                        }
-
-                    done = st.session_state.get("bulk_reports")
-                    if done and done["form"] == form_type:
-                        st.success(f"✅ Izrađeno {done['count']} izvještaja.")
-                        if done["folders"]:
-                            st.markdown("Spremljeno u Google Drive: " + " · ".join(
-                                f"[{f}]({link})" for f, link in sorted(done["folders"].items()) if link))
-                        if done["problems"]:
-                            with st.expander(f"⚠️ Napomene ({len(done['problems'])})"):
-                                for msg in done["problems"]:
-                                    st.write("- " + msg)
-                        st.download_button("⬇️ Preuzmi sve izvještaje (.zip)", data=done["zip"],
-                                           file_name=done["name"], mime="application/zip")
-                        # E-mail s poveznicom na mapu izvještaja - samo kad su izrađeni za jedan fakultet
-                        faculty_done = done.get("faculty")
-                        folder_link = done["folders"].get(reports.safe_file_part(faculty_done or ""))
-                        if faculty_done and faculty_done != "Svi fakulteti" and folder_link:
-                            email_block(
-                                "mail_bulk", faculty_done, [("Izvješća", folder_link, True)],
-                                lambda greet, chosen, sig: kontakti.compose_bulk(
-                                    MAIL_KIND, faculty_done, chosen[0][1] if chosen else "", done["count"],
-                                    report_year, greet, sig),
-                            )
-                        elif done["folders"]:
-                            st.caption("✉️ E-mail fakultetu: izradite izvještaje za jedan fakultet (odabir gore).")
-
-
-# ==============================================================================
-# 6. MAPA ZA FAKULTET: PDF IZVJEŠTAJI I SKENIRANE ANKETE NA JEDNOM MJESTU (BEZ EXCELA)
-# ==============================================================================
-
+# Nazivi mapa i podmapa sa skenovima (koraci 4 i 5)
 DELIVERY_NAMES = {"Preddiplomski studij": "Prijediplomski studij", "Procjena nastavnika (V4)": "Procjena nastavnika"}
 
 
@@ -1463,98 +1353,230 @@ def batch_label(form, part):
     return reports.safe_file_part(text or str(part["Serija"].iloc[0]))
 
 
-if drive_service is not None:
-    st.markdown("---")
-    st.subheader("📦 Mapa za fakultet")
-    st.caption("Složi jednu mapu u Google Driveu s PDF izvještajima i skeniranim anketama jednog fakulteta "
-               "(bez Excel tablica), podijeli je poveznicom i pripremi e-mail. Izvještaje prvo izradite gore.")
-    if st.button("Učitaj spremljene serije svih obrazaca", key="delivery_load"):
+# ==============================================================================
+# 5. KORACI 4 I 5: SKUPNI IZVJEŠTAJI FAKULTETA I SLANJE (SVE SPREMLJENO U GOOGLE DRIVEU)
+# ==============================================================================
+
+def load_saved_all():
+    """Učitava sve spremljene serije svih obrazaca (osnova za korake 4 i 5)."""
+    loaded = {}
+    for form in CONFIG:
+        df_form = drive.load_all_results(drive_service, form)
+        if not df_form.empty and "Fakultet" in df_form.columns:
+            df_form["Fakultet"] = df_form["Fakultet"].fillna("").astype(str).str.strip()
+            loaded[form] = df_form
+    st.session_state.delivery_data = loaded
+    st.session_state.pop("delivery_reports", None)
+
+
+def saved_data(key):
+    """Gumb za (ponovno) učitavanje spremljenih anketa; vraća učitane podatke ili None."""
+    data = st.session_state.get("delivery_data")
+    label = "🔄 Osvježi iz Google Drivea" if data is not None else "📥 Učitaj spremljene ankete iz Google Drivea"
+    if st.button(label, key=key):
         try:
-            loaded_all = {}
             with st.spinner("Učitavam iz Google Drivea..."):
-                for form in CONFIG:
-                    df_form = drive.load_all_results(drive_service, form)
-                    if not df_form.empty and "Fakultet" in df_form.columns:
-                        df_form["Fakultet"] = df_form["Fakultet"].fillna("").astype(str).str.strip()
-                        loaded_all[form] = df_form
-            st.session_state.delivery_data = loaded_all
-            st.session_state.pop("delivery_reports", None)
+                load_saved_all()
         except Exception as e:
             st.error(f"Učitavanje nije uspjelo: {e}")
+    return st.session_state.get("delivery_data")
 
-    delivery_data = st.session_state.get("delivery_data")
-    if delivery_data is not None:
-        faculties_all = sorted({f for d in delivery_data.values() for f in d["Fakultet"] if f and f != "nan"})
-        if not faculties_all:
-            st.info("U Google Driveu još nema spremljenih serija s upisanim fakultetom.")
-        else:
-            fac = st.selectbox("Fakultet", faculties_all, key="delivery_faculty")
-            fac_folder = reports.safe_file_part(fac)
-            year = st.text_input("Akademska godina (naziv mape)", key="delivery_year",
-                                 value=reports.default_academic_year(offset=-1)).strip()
 
-            # PDF izvještaji tog fakulteta (po obrascu), jednom po odabiru fakulteta
-            cache = st.session_state.setdefault("delivery_reports", {})
-            if fac not in cache:
-                with st.spinner("Tražim izvještaje..."):
-                    cache[fac] = {form: drive.list_reports(drive_service, form, fac_folder) for form in CONFIG}
+def faculties_in(data):
+    return sorted({f for d in data.values() for f in d["Fakultet"] if f and f != "nan"})
 
-            parts_plan = []
-            for form in CONFIG:
-                df_form = delivery_data.get(form)
-                fac_rows = df_form[df_form["Fakultet"] == fac] if df_form is not None else pd.DataFrame()
-                pdfs = cache[fac].get(form, [])
-                if fac_rows.empty and not pdfs:
-                    continue
-                name = DELIVERY_NAMES.get(form, form)
-                st.markdown(f"**{name}** · {len(pdfs)} PDF izvještaja")
-                batches = []
-                if not fac_rows.empty:
-                    for serija, part in fac_rows.groupby("Serija", sort=True):
-                        batches.append((serija, batch_label(form, part), len(part)))
-                chosen = st.multiselect(
-                    "Serije sa skenovima", batches, default=batches, key=f"delivery_batches|{fac}|{form}",
-                    format_func=lambda b: f"{b[1]} ({b[2]} anketa) · {b[0][:16]}",
-                )
-                if not pdfs:
-                    st.caption("Za ovaj obrazac nema PDF izvještaja u mapi Izvještaji - izradite ih gore.")
-                parts_plan.append((form, name, pdfs, chosen))
 
-            if not parts_plan:
-                st.info("Za ovaj fakultet nema ni izvještaja ni skenova.")
-            elif st.button("📦 Pripremi mapu za fakultet", type="primary", key="delivery_go", disabled=not year):
-                try:
-                    progress = st.progress(0.0, text="Pripremam mapu...")
-                    parts, missing = [], []
-                    for form, name, pdfs, chosen in parts_plan:
-                        scans = []
-                        for serija, label, _ in chosen:
-                            sid = drive.scan_folder_id(drive_service, form, serija)
-                            (scans.append((label, sid)) if sid else missing.append(label))
-                        parts.append((name, pdfs, scans))
-                    link, n_rep, n_scan = drive.prepare_delivery(
-                        drive_service, fac_folder, reports.safe_file_part(year.replace("./", "-").strip(".")),
-                        parts, progress=lambda p, t: progress.progress(min(p, 1.0), text=t))
+def batch_options(form, rows):
+    """Serije jednog fakulteta: (serija, naziv, broj anketa)."""
+    return [(serija, batch_label(form, part), len(part)) for serija, part in rows.groupby("Serija", sort=True)]
+
+
+def batch_text(b):
+    return f"{b[1]} ({b[2]} anketa) · spremljeno {b[0][:10]}"
+
+
+# ------------------------------------------------------------------------------
+# KORAK 4: za svaku razinu studija - izvještaj po studijskom programu + jedno zbirno izvješće
+# ------------------------------------------------------------------------------
+with step4:
+    st.markdown("### 4️⃣ Skupni izvještaji fakulteta")
+    st.caption("Kad su u koraku 3 spremljeni svi studijski programi fakulteta: za svaku razinu studija "
+               "(prijediplomski, diplomski, integrirani) izrađuje se izvještaj za svaki studijski program i "
+               "**jedno zbirno izvješće** za sve programe te razine. Sve se sprema u Google Drive. "
+               "Izvještaji za nastavnike izrađuju se u koraku 3, pa za njih idite odmah na korak 5.")
+    if drive_service is None:
+        st.info("Povežite Google Drive (bočna traka).")
+    else:
+        data = saved_data("group_load")
+        if data is not None:
+            study_forms = [f for f in CONFIG if "nastavnik" not in f.lower()]
+            faculties = sorted({f for form in study_forms if form in data for f in data[form]["Fakultet"]
+                                if f and f != "nan"})
+            if not faculties:
+                st.info("U Google Driveu još nema spremljenih studijskih anketa s upisanim fakultetom.")
+            else:
+                fac = st.selectbox("Fakultet", faculties, key="group_faculty")
+                grad_year = st.text_input("Akademska godina završetka studija",
+                                          value=reports.default_academic_year(offset=-1), key="group_year").strip()
+                plan = []
+                for form in study_forms:
+                    if form not in data:
+                        continue
+                    rows = data[form][data[form]["Fakultet"] == fac]
+                    if rows.empty:
+                        continue
+                    name = DELIVERY_NAMES.get(form, form)
+                    with st.container(border=True):
+                        on = st.checkbox(f"**{name}**", value=True, key=f"group_on|{fac}|{form}")
+                        batches = batch_options(form, rows)
+                        chosen = st.multiselect(
+                            "Serije (maknite one koje ne pripadaju ovoj godini)", batches, default=batches,
+                            format_func=batch_text, key=f"group_batches|{fac}|{form}")
+                        rows = rows[rows["Serija"].isin([b[0] for b in chosen])]
+                        groups, incomplete = reports.group_surveys(form, rows)
+                        min_n = reports.REPORTS[form]["min_surveys"]
+                        ok = [g for g in groups if len(g[1]) >= min_n]
+                        small = [g for g in groups if len(g[1]) < min_n]
+                        st.caption(f"{len(rows)} anketa → {len(ok)} izvještaja po studijskom programu + 1 zbirno izvješće.")
+                        if small:
+                            st.caption(f"Manje od {min_n} anketa (bez zasebnog izvještaja, ali ulaze u zbirno): " +
+                                       "; ".join(f"{g[0]['Studijski program']} ({len(g[1])})" for g in small))
+                        if incomplete:
+                            st.warning(f"{incomplete} anketa nema upisan studijski program pa ne ulazi u izvještaje.")
+                    if on and len(rows):
+                        plan.append((form, name, rows, ok))
+
+                if plan and st.button("📄 Izradi skupne izvještaje i spremi u Google Drive", type="primary",
+                                      key="group_go", disabled=not grad_year):
+                    import zipfile
+                    zip_buf, problems, folder_links, made = io.BytesIO(), [], {}, 0
+                    total = sum(len(ok) + 1 for _f, _n, _r, ok in plan)
+                    progress = st.progress(0.0, text="Izrađujem izvještaje...")
+                    fac_folder = reports.safe_file_part(fac)
+                    with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
+                        for form, name, rows, ok in plan:
+                            jobs = [(reports.report_file_name(form, gi), gd, gi) for gi, gd in ok]
+                            combined_info = {"Fakultet": fac, "Studijski program": "Svi studijski programi (zbirno izvješće)",
+                                             "Kod studijskog programa": "", "zbirni": True}
+                            jobs.append((f"Zbirno izvješće - {name}.pdf", rows, combined_info))
+                            for file_name, g_df, g_info in jobs:
+                                try:
+                                    pdf, w = reports.build_report(form, g_df, g_info, None, grad_year, report_date)
+                                    zf.writestr(f"{name}/{file_name}", pdf)
+                                    problems += [f"{name} / {file_name}: {x}" for x in w]
+                                    _, folder_links[name] = drive.save_report(drive_service, form, fac_folder, file_name, pdf)
+                                    made += 1
+                                except Exception as e:
+                                    problems.append(f"{name} / {file_name}: izvještaj nije izrađen ({e})")
+                                progress.progress(min((made + 1) / total, 1.0), text=f"Izrađujem izvještaje... {file_name}")
                     progress.empty()
-                    st.session_state.delivery_done = {"faculty": fac, "link": link, "kinds": [p[0] for p in parts],
-                                                      "reports": n_rep, "scans": n_scan, "missing": missing,
-                                                      "year": year}
-                except Exception as e:
-                    st.error(f"Mapa nije pripremljena: {e}")
+                    st.session_state.group_done = {"faculty": fac, "zip": zip_buf.getvalue(), "made": made,
+                                                   "problems": problems, "folders": folder_links}
+                    st.session_state.pop("delivery_reports", None)
+                    st.session_state["delivery_faculty"] = fac  # Korak 5 odmah na istom fakultetu
 
-            done = st.session_state.get("delivery_done")
-            if done and done["faculty"] == fac:
-                st.success(f"✅ Mapa je spremna i podijeljena (svatko s poveznicom može gledati): "
-                           f"[{fac}]({done['link']}) · kopirano sada: {done['reports']} izvještaja, "
-                           f"{done['scans']} skenova (ono što je već bilo u mapi preskočeno je).")
-                if done["missing"]:
-                    st.warning("Za ove serije skenovi nisu spremljeni u Drive: " + ", ".join(done["missing"]))
-                kinds = done["kinds"]
-                mail_kind = (kontakti.KIND_TEACHERS if all("nastavnik" in k.lower() for k in kinds)
-                             else kontakti.KIND_STUDIES)
-                email_block(
-                    "mail_delivery", fac, [("Mapa", done["link"], True)],
-                    lambda greet, chosen, sig: kontakti.compose_folder(
-                        kinds, fac, chosen[0][1] if chosen else "", done["year"], greet, sig),
-                    kind=mail_kind,
-                )
+                done = st.session_state.get("group_done")
+                if done and done["faculty"] == fac:
+                    st.success(f"✅ Izrađeno i spremljeno u Google Drive: {done['made']} izvještaja. "
+                               "**Sljedeće: korak 5** (slanje fakultetu).")
+                    if done["folders"]:
+                        st.markdown(" · ".join(f"[{n}]({link})" for n, link in done["folders"].items() if link))
+                    if done["problems"]:
+                        with st.expander(f"⚠️ Napomene ({len(done['problems'])})"):
+                            for msg in done["problems"]:
+                                st.write("- " + msg)
+                    st.download_button("⬇️ Preuzmi sve izvještaje (.zip)", data=done["zip"],
+                                       file_name=f"Izvjestaji_{reports.safe_file_part(fac)}.zip", mime="application/zip")
+
+            with st.expander("📚 Sve spremljene ankete (Excel tablice za godišnje izvješće)"):
+                for form, df_form in data.items():
+                    st.download_button(f"⬇️ {DELIVERY_NAMES.get(form, form)} – {len(df_form)} anketa (.xlsx)",
+                                       data=drive.dataframe_to_xlsx_bytes(df_form),
+                                       file_name=f"{form}_svi_rezultati.xlsx", mime=drive.XLSX_MIME,
+                                       key=f"all_xlsx|{form}")
+
+
+# ------------------------------------------------------------------------------
+# KORAK 5: mapa za fakultet (PDF izvještaji + skenirane ankete, bez Excela) i e-mail s kopijom
+# ------------------------------------------------------------------------------
+with step5:
+    st.markdown("### 5️⃣ Slanje fakultetu")
+    st.caption("Program složi jednu mapu u Google Driveu s PDF izvještajima i skeniranim anketama fakulteta "
+               "(bez Excel tablica), podijeli je poveznicom i pripremi e-mail koji se otvori u Outlooku.")
+    if drive_service is None:
+        st.info("Povežite Google Drive (bočna traka).")
+    else:
+        data = saved_data("delivery_load")
+        if data is not None:
+            faculties = faculties_in(data)
+            if not faculties:
+                st.info("U Google Driveu još nema spremljenih serija s upisanim fakultetom.")
+            else:
+                if st.session_state.get("delivery_faculty") not in faculties:
+                    st.session_state.pop("delivery_faculty", None)
+                fac = st.selectbox("Fakultet", faculties, key="delivery_faculty")
+                fac_folder = reports.safe_file_part(fac)
+                year = st.text_input("Akademska godina (naziv mape)", key="delivery_year",
+                                     value=reports.default_academic_year(offset=-1)).strip()
+
+                cache = st.session_state.setdefault("delivery_reports", {})
+                if fac not in cache:
+                    with st.spinner("Tražim izvještaje..."):
+                        cache[fac] = {form: drive.list_reports(drive_service, form, fac_folder) for form in CONFIG}
+
+                parts_plan = []
+                for form in CONFIG:
+                    df_form = data.get(form)
+                    fac_rows = df_form[df_form["Fakultet"] == fac] if df_form is not None else pd.DataFrame()
+                    pdfs = cache[fac].get(form, [])
+                    if fac_rows.empty and not pdfs:
+                        continue
+                    name = DELIVERY_NAMES.get(form, form)
+                    with st.container(border=True):
+                        st.markdown(f"**{name}** · {len(pdfs)} PDF izvještaja")
+                        batches = batch_options(form, fac_rows) if not fac_rows.empty else []
+                        chosen = st.multiselect("Skenirane ankete (serije)", batches, default=batches,
+                                                format_func=batch_text, key=f"delivery_batches|{fac}|{form}")
+                        if not pdfs:
+                            st.caption("Nema PDF izvještaja - izradite ih u koraku 3 ili 4.")
+                    parts_plan.append((form, name, pdfs, chosen))
+
+                if not parts_plan:
+                    st.info("Za ovaj fakultet nema ni izvještaja ni skenova.")
+                elif st.button("📦 Pripremi mapu za fakultet", type="primary", key="delivery_go", disabled=not year):
+                    try:
+                        progress = st.progress(0.0, text="Pripremam mapu...")
+                        parts, missing = [], []
+                        for form, name, pdfs, chosen in parts_plan:
+                            scans = []
+                            for serija, label, _ in chosen:
+                                sid = drive.scan_folder_id(drive_service, form, serija)
+                                (scans.append((label, sid)) if sid else missing.append(label))
+                            if pdfs or scans:
+                                parts.append((name, pdfs, scans))
+                        link, n_rep, n_scan = drive.prepare_delivery(
+                            drive_service, fac_folder, reports.safe_file_part(year.replace("./", "-").strip(".")),
+                            parts, progress=lambda p, t: progress.progress(min(p, 1.0), text=t))
+                        progress.empty()
+                        st.session_state.delivery_done = {"faculty": fac, "link": link, "kinds": [p[0] for p in parts],
+                                                          "reports": n_rep, "scans": n_scan, "missing": missing,
+                                                          "year": year}
+                    except Exception as e:
+                        st.error(f"Mapa nije pripremljena: {e}")
+
+                done = st.session_state.get("delivery_done")
+                if done and done["faculty"] == fac:
+                    st.success(f"✅ Mapa je spremna i podijeljena (svatko s poveznicom može gledati): "
+                               f"[{fac}]({done['link']}) · kopirano sada: {done['reports']} izvještaja, "
+                               f"{done['scans']} skenova (što je već bilo u mapi, preskočeno je).")
+                    if done["missing"]:
+                        st.warning("Za ove serije skenovi nisu spremljeni u Drive: " + ", ".join(done["missing"]))
+                    kinds = done["kinds"]
+                    mail_kind = (kontakti.KIND_TEACHERS if kinds and all("nastavnik" in k.lower() for k in kinds)
+                                 else kontakti.KIND_STUDIES)
+                    email_block(
+                        "mail_delivery", fac, [("Mapa", done["link"], True)],
+                        lambda greet, chosen, sig: kontakti.compose_folder(
+                            kinds, fac, chosen[0][1] if chosen else "", done["year"], greet, sig),
+                        kind=mail_kind,
+                    )

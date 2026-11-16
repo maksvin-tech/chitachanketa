@@ -133,6 +133,8 @@ def suggestions(contacts, faculty, kind):
         scored.append((score, fits, r.to_dict()))
     best = max((s for s, _, _ in scored), default=0)
     good = [r for s, fits, r in scored if best > 0 and s == best and fits]
+    if not good:  # Nitko s tog fakulteta nije označen za ovu vrstu ankete: ponudi sve s tog fakulteta
+        good = [r for s, _fits, r in scored if best > 0 and s == best]
     # Oni s kojima se već dopisivalo idu prvi, zatim imenovane osobe, pa opće adrese
     good.sort(key=lambda r: (r["Izvor"] != DIRECT, not r["Ime i prezime"], r["Ime i prezime"]))
     ids = {r["E-mail"] for r in good}
