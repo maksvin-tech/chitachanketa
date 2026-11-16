@@ -817,6 +817,8 @@ def email_block(key, faculty, links, make_message, kind=None):
         st.caption(f"Poruka se otvara u Outlooku na ovom računalu, od računa koji je ondje prijavljen. "
                    f"Provjerite je i pritisnite Pošalji. Ako se Outlook ne otvori, primatelj je: {contact['E-mail']}"
                    + (f"; kopija: {', '.join(cc)}" if cc else ""))
+        return contact["E-mail"], cc
+    return None
 
 
 cfg = CONFIG[form_type]
@@ -1382,6 +1384,11 @@ def saved_data(key):
     return st.session_state.get("delivery_data")
 
 
+def sent_label(faculty, year):
+    """'✅ Fakultet' ako je fakultetu za tu godinu već označeno slanje."""
+    return ("✅ " if kontakti.sent_key(faculty, year) in kontakti.load_sent() else "") + faculty
+
+
 def faculties_in(data):
     return sorted({f for d in data.values() for f in d["Fakultet"] if f and f != "nan"})
 
@@ -1415,7 +1422,9 @@ with step4:
             if not faculties:
                 st.info("U Google Driveu još nema spremljenih studijskih anketa s upisanim fakultetom.")
             else:
-                fac = st.selectbox("Fakultet", faculties, key="group_faculty")
+                _year_now = st.session_state.get("delivery_year") or reports.default_academic_year(offset=-1)
+                fac = st.selectbox("Fakultet (✅ = već poslano)", faculties, key="group_faculty",
+                                   format_func=lambda f: sent_label(f, _year_now))
                 grad_year = st.text_input("Akademska godina završetka studija",
                                           value=reports.default_academic_year(offset=-1), key="group_year").strip()
                 plan = []
@@ -1514,10 +1523,29 @@ with step5:
             else:
                 if st.session_state.get("delivery_faculty") not in faculties:
                     st.session_state.pop("delivery_faculty", None)
-                fac = st.selectbox("Fakultet", faculties, key="delivery_faculty")
+                _year_now = st.session_state.get("delivery_year") or reports.default_academic_year(offset=-1)
+                fac = st.selectbox("Fakultet (✅ = već poslano)", faculties, key="delivery_faculty",
+                                   format_func=lambda f: sent_label(f, _year_now))
                 fac_folder = reports.safe_file_part(fac)
                 year = st.text_input("Akademska godina (naziv mape)", key="delivery_year",
                                      value=reports.default_academic_year(offset=-1)).strip()
+
+                # Je li ovaj fakultet za ovu godinu već dobio mapu (da se ne šalje više puta)
+                sent_rec = kontakti.load_sent().get(kontakti.sent_key(fac, year))
+                if sent_rec:
+                    st.success(f"✅ **Već poslano** {sent_rec['datum']} → {sent_rec.get('primatelj') or 'primatelj nije zapisan'}"
+                               + (f", kopija: {sent_rec['kopija']}" if sent_rec.get("kopija") else "")
+                               + ". **Ne šaljite ponovno** osim ako je to dogovoreno.")
+                    if st.button("↩️ Poništi oznaku (ipak nije poslano)", key="unmark_sent"):
+                        kontakti.unmark_sent(fac, year)
+                        st.rerun()
+                else:
+                    st.caption(f"⬜ {fac} za {year} još nije označen kao poslan.")
+                    done_now = st.session_state.get("delivery_done")
+                    if not (done_now and done_now["faculty"] == fac) and st.button(
+                            "✅ Označi kao poslano (e-mail je već poslan)", key="mark_sent_manual"):
+                        kontakti.mark_sent(fac, year)
+                        st.rerun()
 
                 cache = st.session_state.setdefault("delivery_reports", {})
                 if fac not in cache:
@@ -1574,9 +1602,24 @@ with step5:
                     kinds = done["kinds"]
                     mail_kind = (kontakti.KIND_TEACHERS if kinds and all("nastavnik" in k.lower() for k in kinds)
                                  else kontakti.KIND_STUDIES)
-                    email_block(
+                    sent_to = email_block(
                         "mail_delivery", fac, [("Mapa", done["link"], True)],
                         lambda greet, chosen, sig: kontakti.compose_folder(
                             kinds, fac, chosen[0][1] if chosen else "", done["year"], greet, sig),
                         kind=mail_kind,
                     )
+                    if sent_to and kontakti.sent_key(fac, done["year"]) not in kontakti.load_sent():
+                        st.markdown("**Kad ste u Outlooku pritisnuli Pošalji:**")
+                        if st.button("✅ Označi fakultet kao poslan", type="primary", key="mark_sent"):
+                            kontakti.mark_sent(fac, done["year"], sent_to[0], sent_to[1], done["link"])
+                            st.rerun()
+
+            sent_all = kontakti.load_sent()
+            with st.expander(f"📋 Pregled poslanog ({len(sent_all)} fakulteta)"):
+                if sent_all:
+                    st.dataframe(pd.DataFrame(sent_all.values()).rename(columns={
+                        "fakultet": "Fakultet", "godina": "Godina", "datum": "Poslano", "primatelj": "Primatelj",
+                        "kopija": "Kopija", "mapa": "Mapa"}).sort_values(["Godina", "Fakultet"]),
+                        use_container_width=True, hide_index=True)
+                else:
+                    st.caption("Još ništa nije označeno kao poslano.")

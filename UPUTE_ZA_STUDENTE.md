@@ -36,3 +36,10 @@ Program ima 5 koraka (kartice na vrhu stranice). U bočnoj traci prvo odaberite 
 - E-mail: odaberite **primatelja** (⭐ = kontakt tog fakulteta), po potrebi **kopiju (CC)** s popisa ili
   upišite adrese odvojene zarezom, provjerite tekst → **✉️ Pripremi e-mail** → **📧 Otvori u Outlooku**
   → u Outlooku provjerite poruku i pritisnite **Pošalji**.
+
+## ✅ Oznaka "poslano"
+- Fakultet koji je već dobio mapu ima **✅** ispred imena (koraci 4 i 5) i zeleni okvir *Već poslano*
+  s datumom i primateljem. **Takvom fakultetu ne šaljite ponovno.**
+- Nakon što u Outlooku pritisnete *Pošalji*, u programu kliknite **✅ Označi fakultet kao poslan**.
+- Ako je e-mail poslan bez programa: **✅ Označi kao poslano (e-mail je već poslan)**.
+- Pogreška? **↩️ Poništi oznaku**. Popis svega poslanog: **📋 Pregled poslanog** (korak 5).

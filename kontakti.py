@@ -225,6 +225,50 @@ def compose_folder(kinds, faculty, folder_link, year=None, greet=DEFAULT_GREETIN
     return subject, body
 
 
+# ------------------------------------------------------------------------------
+# Evidencija poslanog: koji je fakultet za koju godinu već dobio mapu (da se ne šalje više puta)
+# ------------------------------------------------------------------------------
+
+SENT_FILE = os.path.join(DATA_DIR, "poslano.json")
+
+
+def load_sent():
+    """{"<fakultet>|<godina>": {"fakultet", "godina", "datum", "primatelj", "kopija", "mapa"}}"""
+    import json
+    try:
+        with open(SENT_FILE, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
+
+
+def _write_sent(data):
+    import json
+    os.makedirs(DATA_DIR, exist_ok=True)
+    tmp = SENT_FILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=1)
+    os.replace(tmp, SENT_FILE)
+
+
+def sent_key(faculty, year):
+    return f"{faculty}|{year}"
+
+
+def mark_sent(faculty, year, to="", cc=(), folder_link=""):
+    from datetime import datetime
+    data = load_sent()
+    data[sent_key(faculty, year)] = {"fakultet": faculty, "godina": year, "datum": f"{datetime.now():%d.%m.%Y. %H:%M}",
+                                     "primatelj": to, "kopija": ", ".join(cc), "mapa": folder_link}
+    _write_sent(data)
+
+
+def unmark_sent(faculty, year):
+    data = load_sent()
+    data.pop(sent_key(faculty, year), None)
+    _write_sent(data)
+
+
 def mailto(to, subject, body, cc=None):
     """Poveznica koja otvara novu poruku u zadanom programu za e-poštu (Outlook)."""
     params = [f"subject={quote(subject)}", f"body={quote(body.replace(chr(10), chr(13) + chr(10)))}"]
