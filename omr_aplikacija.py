@@ -13,7 +13,7 @@ except ImportError:
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import LTTextContainer, LTChar
 
-import drive_storage as drive
+import onedrive_storage as drive
 import kontakti
 import programi
 import reports
@@ -34,7 +34,7 @@ CONFIG = {
             {"name": "Nositelj predmeta", "choices": ["ne", "da"]},
             {"name": "Identifikacijski ključ", "optional": True},
         ],
-        "batch_label": ["Nastavnik", "Kolegij"],  # Dodaje se u ime serije u Google Driveu
+        "batch_label": ["Nastavnik", "Kolegij"],  # Dodaje se u ime serije u OneDriveu
         "columns": [
             "Spol", "Prisutnost", "Interes kolegija", "Indeks", "Ocjena kolegija",
             "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10"
@@ -626,80 +626,59 @@ st.title("📋 OMR Čitač Anketa – Sveučilište u Zagrebu")
 form_type = st.sidebar.selectbox("Vrsta obrasca:", list(CONFIG.keys()))
 sensitivity = st.sidebar.slider("Osjetljivost na kemijsku olovku:", 0.10, 0.35, 0.18, 0.01)
 
-# --- Google Drive (spremanje u oblak) ---
+# --- OneDrive (poslovni račun mvinscak@unizg.hr): spremanje u oblak ---
 st.sidebar.markdown("---")
-st.sidebar.subheader("☁️ Google Drive")
+st.sidebar.subheader("☁️ OneDrive")
 drive_service = None
 if not drive.libraries_installed():
-    st.sidebar.warning("Google biblioteke nisu instalirane. Pokrenite: `pip install -r requirements.txt`")
-elif not os.path.exists(drive.CREDENTIALS_FILE):
-    st.sidebar.info("Google Drive još nije podešen. Učitajte ključ programa (*google_credentials.json*) "
-                    "ili pogledajte upute u **PODESAVANJE_GOOGLE_DRIVE.md**.")
-    key_file = st.sidebar.file_uploader("Ključ programa (google_credentials.json)", type=["json"], key="cred_upload")
-    if key_file is not None:
-        problem = drive.save_credentials(key_file.getvalue())
-        if problem:
-            st.sidebar.error(problem)
-        else:
-            st.sidebar.success("Ključ je spremljen.")
-            st.rerun()
+    st.sidebar.warning("Nedostaje biblioteka *requests*. Pokrenite: `pip install -r requirements.txt`")
 else:
     try:
-        drive_service = drive.get_service(interactive=False)  # Tiha prijava ako je već spremljena
+        drive_service = drive.get_service()  # Tiha prijava ako je već spremljena
     except Exception as e:
-        st.sidebar.error(f"Greška pri spajanju na Google Drive: {e}")
+        st.sidebar.error(f"Greška pri spajanju na OneDrive: {e}")
 
-    if drive_service is None and drive.SERVER_MODE:
-        # Na poslužitelju nema preglednika: prijava u pregledniku korisnika pa kopiranje adrese
-        login = st.session_state.get("web_login")
+    if drive_service is None:
+        login = st.session_state.get("ms_login")
         if login is None:
-            st.sidebar.caption("Prijava se obnavlja otprilike jednom tjedno.")
-            if st.sidebar.button("🔑 Prijavi se u Google Drive"):
+            st.sidebar.caption("Prijava se radi jednom i zatim sama obnavlja.")
+            if st.sidebar.button("🔑 Prijavi se u OneDrive"):
                 try:
-                    url, flow = drive.start_web_login()
-                    st.session_state.web_login = {"url": url, "flow": flow}
+                    st.session_state.ms_login = drive.start_device_login()
                     st.rerun()
                 except Exception as e:
                     st.sidebar.error(f"Prijava se ne može pokrenuti: {e}")
         else:
             st.sidebar.markdown(
-                f"**1.** [Otvorite Google prijavu]({login['url']}), odaberite račun i odobrite pristup.  \n"
-                "**2.** Preglednik zatim prikaže stranicu koja se ne može otvoriti (*localhost*) - to je u redu. "
-                "Kopirajte cijelu adresu iz trake preglednika i zalijepite je ovdje:"
+                f"**1.** Otvorite [{login['verification_uri']}]({login['verification_uri']})  \n"
+                f"**2.** Upišite kod: **`{login['user_code']}`**  \n"
+                "**3.** Prijavite se računom **@unizg.hr** u koji se spremaju ankete i prihvatite pristup.  \n"
+                "**4.** Vratite se ovamo i kliknite *Završi prijavu*."
             )
-            pasted = st.sidebar.text_input("Adresa iz preglednika", key="web_login_paste",
-                                           placeholder="http://localhost:8765/?state=...&code=...")
             c1, c2 = st.sidebar.columns(2)
-            if c1.button("Završi prijavu", type="primary", disabled=not pasted):
+            if c1.button("Završi prijavu", type="primary"):
                 try:
-                    drive.finish_web_login(login["flow"], pasted)
-                    st.session_state.pop("web_login", None)
-                    st.session_state.pop("web_login_paste", None)
-                    st.rerun()
+                    with st.spinner("Čekam potvrdu prijave..."):
+                        done = drive.poll_device_login(login, wait=20)
+                    if done is None:
+                        st.sidebar.info("Prijava još nije potvrđena. Dovršite korake 1-3 pa kliknite ponovno.")
+                    else:
+                        st.session_state.pop("ms_login", None)
+                        st.rerun()
                 except Exception as e:
-                    st.sidebar.error(f"Prijava nije uspjela: {e}. Pokušajte ponovno od koraka 1.")
+                    st.session_state.pop("ms_login", None)
+                    st.sidebar.error(f"Prijava nije uspjela: {e}")
             if c2.button("Odustani"):
-                st.session_state.pop("web_login", None)
-                st.rerun()
-    elif drive_service is None:
-        st.sidebar.caption("Prva prijava otvara preglednik u kojem odobrite pristup.")
-        if st.sidebar.button("🔑 Prijavi se u Google Drive"):
-            logged_in = False
-            try:
-                drive.get_service(interactive=True)
-                logged_in = True
-            except Exception as e:
-                st.sidebar.error(f"Prijava nije uspjela: {e}")
-            if logged_in:
+                st.session_state.pop("ms_login", None)
                 st.rerun()
     else:
         if "drive_email" not in st.session_state:
             st.session_state.drive_email = drive.account_email(drive_service)
             st.session_state.drive_root_link = drive.root_folder_link(drive_service)
-        st.sidebar.success(f"Povezano: {st.session_state.drive_email or 'Google račun'}")
+        st.sidebar.success(f"Povezano: {st.session_state.drive_email or 'Microsoft račun'}")
         if st.session_state.drive_root_link:
             st.sidebar.markdown(f"[📂 Otvori mapu *{drive.ROOT_FOLDER}*]({st.session_state.drive_root_link})")
-        if st.sidebar.button("Odjava s Google Drivea"):
+        if st.sidebar.button("Odjava s OneDrivea"):
             drive.logout()
             for k in ("drive_email", "drive_root_link"):
                 st.session_state.pop(k, None)
@@ -751,7 +730,7 @@ MAIL_KIND = kontakti.KIND_TEACHERS if "nastavnik" in form_type.lower() else kont
 def email_block(key, faculty, links, make_message, kind=None):
     """E-mail fakultetu: odabir primatelja s popisa, standardni tekst i otvaranje u Outlooku.
 
-    links        : popis (opis, poveznica na Google Drive, uključeno_odmah)
+    links        : popis (opis, poveznica na OneDrive, uključeno_odmah)
     make_message : funkcija (oslovljavanje, odabrane poveznice, potpis) -> (naslov, tekst)
     kind         : vrsta ankete za odabir kontakata (zadano: prema odabranom obrascu)
     """
@@ -800,13 +779,16 @@ def email_block(key, faculty, links, make_message, kind=None):
     current = (contact["E-mail"], tuple(cc), subject, body)
     if st.button("✉️ Pripremi e-mail", key=f"{key}_prepare", disabled=not chosen):
         try:
-            shared = st.session_state.setdefault("shared_links", set())
+            # OneDrive za dijeljenje daje posebnu poveznicu: ona zamjenjuje običnu u tekstu poruke
+            shared = st.session_state.setdefault("shared_links", {})
+            mail_body = body
             with st.spinner("Dijelim poveznice (svatko s poveznicom može gledati)..."):
                 for _, url in chosen:
                     if url not in shared:
-                        drive.share_with_link(drive_service, url)
-                        shared.add(url)
-            st.session_state[ready_key] = (current, kontakti.mailto(contact["E-mail"], subject, body, cc=",".join(cc)))
+                        shared[url] = drive.share_with_link(drive_service, url)
+                    mail_body = mail_body.replace(url, shared[url])
+            st.session_state[ready_key] = (current, kontakti.mailto(contact["E-mail"], subject, mail_body,
+                                                                     cc=",".join(cc)))
         except Exception as e:
             st.error(f"Poveznice se ne mogu podijeliti: {e}")
     if not chosen:
@@ -842,7 +824,7 @@ def load_programs():
 PROGRAMS = load_programs()
 
 # ==============================================================================
-# KORACI ZA STUDENTE: 1 skenovi -> 2 ispravci -> 3 izvještaj i Drive -> 4 skupni izvještaji -> 5 slanje
+# KORACI ZA STUDENTE: 1 skenovi -> 2 ispravci -> 3 izvještaj i OneDrive -> 4 skupni izvještaji -> 5 slanje
 # ==============================================================================
 step1, step2, step3, step4, step5 = st.tabs([
     "1️⃣ Učitaj skenove", "2️⃣ Provjera i ispravci", "3️⃣ Izvještaj i spremanje",
@@ -1235,7 +1217,7 @@ if uploaded_files:
                         )
                     save_buttons(("💾 Spremi ispravke", "💾 Spremi ispravke i idi na sljedeću ▶"))
 
-        # Ručni ispravci ulaze u Excel, izvještaj i Google Drive (brojevi kao brojevi, 'x' = nedostaje)
+        # Ručni ispravci ulaze u Excel, izvještaj i OneDrive (brojevi kao brojevi, 'x' = nedostaje)
         edited_df = table_df.copy()
         for col in question_cols:
             edited_df[col] = edited_df[col].map(typed_answer)
@@ -1248,12 +1230,12 @@ if uploaded_files:
         st.info("Kad su ispravci spremljeni, **sljedeće: korak 3** - izvještaj i spremanje.")
 
     with step3:
-        st.markdown("### 3️⃣ Izvještaj i spremanje u Google Drive")
+        st.markdown("### 3️⃣ Izvještaj i spremanje u OneDrive")
         if missing_info:
             st.warning(f"Prvo u koraku 1 upišite podatke o anketiranju: **{', '.join(missing_info)}**.")
         if not report_year:
             st.warning("U bočnoj traci (📄 Postavke izvještaja) upišite akademsku godinu.")
-        st.caption("Jedan klik izradi PDF izvještaj i u Google Drive spremi rezultate, skenirane ankete i izvještaj. "
+        st.caption("Jedan klik izradi PDF izvještaj i u OneDrive spremi rezultate, skenirane ankete i izvještaj. "
                    "Ako nakon toga nešto ispravite u koraku 2, kliknite ponovno: zamijenit će se rezultati i "
                    "izvještaj (skenovi se ne šalju ponovno).")
         batch_key = form_type + "|" + "|".join(f"{f.name}:{f.size}" for f in files_sorted)
@@ -1264,11 +1246,11 @@ if uploaded_files:
                                  disabled=previous is not None or drive_service is None)
         if drive_service is None:
             go_label = "📄 Izradi PDF izvještaj"
-            st.info("Google Drive nije povezan (bočna traka) - izvještaj se može samo preuzeti.")
+            st.info("OneDrive nije povezan (bočna traka) - izvještaj se može samo preuzeti.")
         elif previous:
-            go_label = "📄 Izradi izvještaj i spremi izmjene u Google Drive"
+            go_label = "📄 Izradi izvještaj i spremi izmjene u OneDrive"
         else:
-            go_label = "📄 Izradi izvještaj i spremi sve u Google Drive"
+            go_label = "📄 Izradi izvještaj i spremi sve u OneDrive"
         if st.button(go_label, type="primary", disabled=bool(missing_info) or not report_year or not all_rows):
             stored = None
             try:
@@ -1281,7 +1263,7 @@ if uploaded_files:
                 st.error(f"Izrada izvještaja nije uspjela: {e}")
             if stored and drive_service is not None:
                 try:
-                    with st.spinner("Spremam u Google Drive..."):
+                    with st.spinner("Spremam u OneDrive..."):
                         scans = None
                         if save_scans and previous is None:
                             scans = [(f.name, f.getvalue()) for f in files_sorted]
@@ -1307,9 +1289,9 @@ if uploaded_files:
             saved = stored.get("drive")
             info = saved_batches.get(batch_key)
             if saved and saved.get("error"):
-                st.error(f"Spremanje u Google Drive nije uspjelo: {saved['error']}. Izvještaj možete preuzeti ispod.")
+                st.error(f"Spremanje u OneDrive nije uspjelo: {saved['error']}. Izvještaj možete preuzeti ispod.")
             elif saved and info:
-                msg = f"✅ Gotovo. U Google Driveu: rezultati ({info['rows']} anketa)"
+                msg = f"✅ Gotovo. U OneDriveu: rezultati ({info['rows']} anketa)"
                 msg += f", {info['scans_saved']} skeniranih stranica" if info.get("scans_saved") else ""
                 msg += " i PDF izvještaj."
                 st.success(msg)
@@ -1356,7 +1338,7 @@ def batch_label(form, part):
 
 
 # ==============================================================================
-# 5. KORACI 4 I 5: SKUPNI IZVJEŠTAJI FAKULTETA I SLANJE (SVE SPREMLJENO U GOOGLE DRIVEU)
+# 5. KORACI 4 I 5: SKUPNI IZVJEŠTAJI FAKULTETA I SLANJE (SVE SPREMLJENO U ONEDRIVEU)
 # ==============================================================================
 
 def load_saved_all():
@@ -1374,10 +1356,10 @@ def load_saved_all():
 def saved_data(key):
     """Gumb za (ponovno) učitavanje spremljenih anketa; vraća učitane podatke ili None."""
     data = st.session_state.get("delivery_data")
-    label = "🔄 Osvježi iz Google Drivea" if data is not None else "📥 Učitaj spremljene ankete iz Google Drivea"
+    label = "🔄 Osvježi iz OneDrivea" if data is not None else "📥 Učitaj spremljene ankete iz OneDrivea"
     if st.button(label, key=key):
         try:
-            with st.spinner("Učitavam iz Google Drivea..."):
+            with st.spinner("Učitavam iz OneDrivea..."):
                 load_saved_all()
         except Exception as e:
             st.error(f"Učitavanje nije uspjelo: {e}")
@@ -1409,10 +1391,10 @@ with step4:
     st.markdown("### 4️⃣ Skupni izvještaji fakulteta")
     st.caption("Kad su u koraku 3 spremljeni svi studijski programi fakulteta: za svaku razinu studija "
                "(prijediplomski, diplomski, integrirani) izrađuje se izvještaj za svaki studijski program i "
-               "**jedno zbirno izvješće** za sve programe te razine. Sve se sprema u Google Drive. "
+               "**jedno zbirno izvješće** za sve programe te razine. Sve se sprema u OneDrive. "
                "Izvještaji za nastavnike izrađuju se u koraku 3, pa za njih idite odmah na korak 5.")
     if drive_service is None:
-        st.info("Povežite Google Drive (bočna traka).")
+        st.info("Povežite OneDrive (bočna traka).")
     else:
         data = saved_data("group_load")
         if data is not None:
@@ -1420,7 +1402,7 @@ with step4:
             faculties = sorted({f for form in study_forms if form in data for f in data[form]["Fakultet"]
                                 if f and f != "nan"})
             if not faculties:
-                st.info("U Google Driveu još nema spremljenih studijskih anketa s upisanim fakultetom.")
+                st.info("U OneDriveu još nema spremljenih studijskih anketa s upisanim fakultetom.")
             else:
                 _year_now = st.session_state.get("delivery_year") or reports.default_academic_year(offset=-1)
                 fac = st.selectbox("Fakultet (✅ = već poslano)", faculties, key="group_faculty",
@@ -1455,7 +1437,7 @@ with step4:
                     if on and len(rows):
                         plan.append((form, name, rows, ok))
 
-                if plan and st.button("📄 Izradi skupne izvještaje i spremi u Google Drive", type="primary",
+                if plan and st.button("📄 Izradi skupne izvještaje i spremi u OneDrive", type="primary",
                                       key="group_go", disabled=not grad_year):
                     import zipfile
                     zip_buf, problems, folder_links, made = io.BytesIO(), [], {}, 0
@@ -1486,7 +1468,7 @@ with step4:
 
                 done = st.session_state.get("group_done")
                 if done and done["faculty"] == fac:
-                    st.success(f"✅ Izrađeno i spremljeno u Google Drive: {done['made']} izvještaja. "
+                    st.success(f"✅ Izrađeno i spremljeno u OneDrive: {done['made']} izvještaja. "
                                "**Sljedeće: korak 5** (slanje fakultetu).")
                     if done["folders"]:
                         st.markdown(" · ".join(f"[{n}]({link})" for n, link in done["folders"].items() if link))
@@ -1510,16 +1492,16 @@ with step4:
 # ------------------------------------------------------------------------------
 with step5:
     st.markdown("### 5️⃣ Slanje fakultetu")
-    st.caption("Program složi jednu mapu u Google Driveu s PDF izvještajima i skeniranim anketama fakulteta "
+    st.caption("Program složi jednu mapu u OneDriveu s PDF izvještajima i skeniranim anketama fakulteta "
                "(bez Excel tablica), podijeli je poveznicom i pripremi e-mail koji se otvori u Outlooku.")
     if drive_service is None:
-        st.info("Povežite Google Drive (bočna traka).")
+        st.info("Povežite OneDrive (bočna traka).")
     else:
         data = saved_data("delivery_load")
         if data is not None:
             faculties = faculties_in(data)
             if not faculties:
-                st.info("U Google Driveu još nema spremljenih serija s upisanim fakultetom.")
+                st.info("U OneDriveu još nema spremljenih serija s upisanim fakultetom.")
             else:
                 if st.session_state.get("delivery_faculty") not in faculties:
                     st.session_state.pop("delivery_faculty", None)
@@ -1598,7 +1580,7 @@ with step5:
                                f"[{fac}]({done['link']}) · kopirano sada: {done['reports']} izvještaja, "
                                f"{done['scans']} skenova (što je već bilo u mapi, preskočeno je).")
                     if done["missing"]:
-                        st.warning("Za ove serije skenovi nisu spremljeni u Drive: " + ", ".join(done["missing"]))
+                        st.warning("Za ove serije skenovi nisu spremljeni u OneDrive: " + ", ".join(done["missing"]))
                     kinds = done["kinds"]
                     mail_kind = (kontakti.KIND_TEACHERS if kinds and all("nastavnik" in k.lower() for k in kinds)
                                  else kontakti.KIND_STUDIES)

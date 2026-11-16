@@ -15,22 +15,22 @@ Program ima 5 koraka (kartice na vrhu stranice). U bočnoj traci prvo odaberite 
   *x* = nema odgovora.
 
 ## 3️⃣ Izvještaj i spremanje
-- Klik na **📄 Izradi izvještaj i spremi sve u Google Drive**: izradi se PDF izvještaj za taj studijski
-  program ili nastavnika, a u Google Drive se spreme rezultati, skenirane ankete i izvještaj.
+- Klik na **📄 Izradi izvještaj i spremi sve u OneDrive**: izradi se PDF izvještaj za taj studijski
+  program ili nastavnika, a u OneDrive se spreme rezultati, skenirane ankete i izvještaj.
 - Ako nakon toga nešto ispravite, kliknite ponovno (zamijeni se, bez duplikata).
 - Zatim se vratite na korak 1 za sljedeću seriju.
 
 ## 4️⃣ Skupni izvještaji fakulteta (samo studiji)
-- Kad su spremljeni **svi studijski programi fakulteta**: **📥 Učitaj spremljene ankete iz Google Drivea**,
+- Kad su spremljeni **svi studijski programi fakulteta**: **📥 Učitaj spremljene ankete iz OneDrivea**,
   odaberite fakultet i provjerite akademsku godinu završetka studija.
 - Za svaku razinu (prijediplomski, diplomski, integrirani) maknite serije koje ne pripadaju toj godini.
-- **📄 Izradi skupne izvještaje i spremi u Google Drive**: za svaki studijski program izvještaj (najmanje
+- **📄 Izradi skupne izvještaje i spremi u OneDrive**: za svaki studijski program izvještaj (najmanje
   10 anketa) i jedno **zbirno izvješće** za sve programe te razine.
 - Za nastavnike ovaj korak se preskače (izvještaji su gotovi u koraku 3).
 
 ## 5️⃣ Slanje fakultetu
 - Odaberite fakultet, provjerite izvještaje i serije sa skeniranim anketama.
-- **📦 Pripremi mapu za fakultet**: u Google Driveu nastane mapa
+- **📦 Pripremi mapu za fakultet**: u OneDriveu nastane mapa
   `OMR Ankete/Za fakultete/<fakultet>/<godina>/` s PDF izvještajima i skeniranim anketama (bez Excela),
   podijeljena tako da je svatko s poveznicom može gledati.
 - E-mail: odaberite **primatelja** (⭐ = kontakt tog fakulteta), po potrebi **kopiju (CC)** s popisa ili

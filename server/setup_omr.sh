@@ -169,7 +169,7 @@ echo "   korisničko ime:  $WEB_USER"
 echo "   lozinka:         $PASSWORD"
 echo " (Lozinka je spremljena; prikaz: sudo cat $PASSFILE)"
 echo
-echo " Prvi put: u lijevom stupcu učitajte google_credentials.json i prijavite se u Google Drive."
+echo " Prvi put: u lijevom stupcu kliknite „Prijavi se u OneDrive” i slijedite upute (kod)."
 echo " Nova verzija programa:  sudo bash setup_omr.sh   (isti poziv ponovno)"
 echo " Dnevnik programa:       journalctl -u omr-ankete -f"
 echo " Ako se ponovno pokrene setup za Career tests, nakon njega pokrenite i ovu skriptu."
