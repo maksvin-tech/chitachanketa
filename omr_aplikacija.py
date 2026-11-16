@@ -748,18 +748,19 @@ if reports.has_report(form_type):
 MAIL_KIND = kontakti.KIND_TEACHERS if "nastavnik" in form_type.lower() else kontakti.KIND_STUDIES
 
 
-def email_block(key, faculty, links, make_message):
+def email_block(key, faculty, links, make_message, kind=None):
     """E-mail fakultetu: odabir primatelja s popisa, standardni tekst i otvaranje u Outlooku.
 
     links        : popis (opis, poveznica na Google Drive, uključeno_odmah)
     make_message : funkcija (oslovljavanje, odabrane poveznice, potpis) -> (naslov, tekst)
+    kind         : vrsta ankete za odabir kontakata (zadano: prema odabranom obrascu)
     """
     st.markdown("#### ✉️ E-mail fakultetu")
     contacts = st.session_state.get("contacts")
     if contacts is None or contacts.empty:
         st.info("Za e-mail učitajte popis kontakata fakulteta u bočnoj traci (📇 Kontakti fakulteta).")
         return
-    good, rest = kontakti.suggestions(contacts, faculty, MAIL_KIND)
+    good, rest = kontakti.suggestions(contacts, faculty, kind or MAIL_KIND)
     options = good + rest
     if not good:
         st.warning(f"Za „{faculty}” nema kontakta za ovu vrstu ankete - odaberite primatelja s popisa.")
@@ -1436,3 +1437,124 @@ if drive_service is not None:
                             )
                         elif done["folders"]:
                             st.caption("✉️ E-mail fakultetu: izradite izvještaje za jedan fakultet (odabir gore).")
+
+
+# ==============================================================================
+# 6. MAPA ZA FAKULTET: PDF IZVJEŠTAJI I SKENIRANE ANKETE NA JEDNOM MJESTU (BEZ EXCELA)
+# ==============================================================================
+
+DELIVERY_NAMES = {"Preddiplomski studij": "Prijediplomski studij", "Procjena nastavnika (V4)": "Procjena nastavnika"}
+
+
+def batch_label(form, part):
+    """Naziv podmape sa skenovima: '0186 Strojarstvo' ili 'Nastavnik - Kolegij'."""
+    def first(col):
+        if col not in part.columns:
+            return ""
+        vals = part[col].dropna().astype(str).str.strip()
+        vals = vals[(vals != "") & (vals.str.lower() != "nan")]
+        return vals.mode().iloc[0] if len(vals) else ""
+    if "nastavnik" in form.lower():
+        text = " - ".join(p for p in [first("Nastavnik"), first("Kolegij")] if p)
+    else:
+        code = first("Kod studijskog programa")
+        code = code.split(".")[0].zfill(4) if code.replace(".", "").isdigit() else code
+        text = " ".join(p for p in [code, first("Studijski program")] if p)
+    return reports.safe_file_part(text or str(part["Serija"].iloc[0]))
+
+
+if drive_service is not None:
+    st.markdown("---")
+    st.subheader("📦 Mapa za fakultet")
+    st.caption("Složi jednu mapu u Google Driveu s PDF izvještajima i skeniranim anketama jednog fakulteta "
+               "(bez Excel tablica), podijeli je poveznicom i pripremi e-mail. Izvještaje prvo izradite gore.")
+    if st.button("Učitaj spremljene serije svih obrazaca", key="delivery_load"):
+        try:
+            loaded_all = {}
+            with st.spinner("Učitavam iz Google Drivea..."):
+                for form in CONFIG:
+                    df_form = drive.load_all_results(drive_service, form)
+                    if not df_form.empty and "Fakultet" in df_form.columns:
+                        df_form["Fakultet"] = df_form["Fakultet"].fillna("").astype(str).str.strip()
+                        loaded_all[form] = df_form
+            st.session_state.delivery_data = loaded_all
+            st.session_state.pop("delivery_reports", None)
+        except Exception as e:
+            st.error(f"Učitavanje nije uspjelo: {e}")
+
+    delivery_data = st.session_state.get("delivery_data")
+    if delivery_data is not None:
+        faculties_all = sorted({f for d in delivery_data.values() for f in d["Fakultet"] if f and f != "nan"})
+        if not faculties_all:
+            st.info("U Google Driveu još nema spremljenih serija s upisanim fakultetom.")
+        else:
+            fac = st.selectbox("Fakultet", faculties_all, key="delivery_faculty")
+            fac_folder = reports.safe_file_part(fac)
+            year = st.text_input("Akademska godina (naziv mape)", key="delivery_year",
+                                 value=reports.default_academic_year(offset=-1)).strip()
+
+            # PDF izvještaji tog fakulteta (po obrascu), jednom po odabiru fakulteta
+            cache = st.session_state.setdefault("delivery_reports", {})
+            if fac not in cache:
+                with st.spinner("Tražim izvještaje..."):
+                    cache[fac] = {form: drive.list_reports(drive_service, form, fac_folder) for form in CONFIG}
+
+            parts_plan = []
+            for form in CONFIG:
+                df_form = delivery_data.get(form)
+                fac_rows = df_form[df_form["Fakultet"] == fac] if df_form is not None else pd.DataFrame()
+                pdfs = cache[fac].get(form, [])
+                if fac_rows.empty and not pdfs:
+                    continue
+                name = DELIVERY_NAMES.get(form, form)
+                st.markdown(f"**{name}** · {len(pdfs)} PDF izvještaja")
+                batches = []
+                if not fac_rows.empty:
+                    for serija, part in fac_rows.groupby("Serija", sort=True):
+                        batches.append((serija, batch_label(form, part), len(part)))
+                chosen = st.multiselect(
+                    "Serije sa skenovima", batches, default=batches, key=f"delivery_batches|{fac}|{form}",
+                    format_func=lambda b: f"{b[1]} ({b[2]} anketa) · {b[0][:16]}",
+                )
+                if not pdfs:
+                    st.caption("Za ovaj obrazac nema PDF izvještaja u mapi Izvještaji - izradite ih gore.")
+                parts_plan.append((form, name, pdfs, chosen))
+
+            if not parts_plan:
+                st.info("Za ovaj fakultet nema ni izvještaja ni skenova.")
+            elif st.button("📦 Pripremi mapu za fakultet", type="primary", key="delivery_go", disabled=not year):
+                try:
+                    progress = st.progress(0.0, text="Pripremam mapu...")
+                    parts, missing = [], []
+                    for form, name, pdfs, chosen in parts_plan:
+                        scans = []
+                        for serija, label, _ in chosen:
+                            sid = drive.scan_folder_id(drive_service, form, serija)
+                            (scans.append((label, sid)) if sid else missing.append(label))
+                        parts.append((name, pdfs, scans))
+                    link, n_rep, n_scan = drive.prepare_delivery(
+                        drive_service, fac_folder, reports.safe_file_part(year.replace("./", "-").strip(".")),
+                        parts, progress=lambda p, t: progress.progress(min(p, 1.0), text=t))
+                    progress.empty()
+                    st.session_state.delivery_done = {"faculty": fac, "link": link, "kinds": [p[0] for p in parts],
+                                                      "reports": n_rep, "scans": n_scan, "missing": missing,
+                                                      "year": year}
+                except Exception as e:
+                    st.error(f"Mapa nije pripremljena: {e}")
+
+            done = st.session_state.get("delivery_done")
+            if done and done["faculty"] == fac:
+                st.success(f"✅ Mapa je spremna i podijeljena (svatko s poveznicom može gledati): "
+                           f"[{fac}]({done['link']}) · kopirano sada: {done['reports']} izvještaja, "
+                           f"{done['scans']} skenova (ono što je već bilo u mapi preskočeno je).")
+                if done["missing"]:
+                    st.warning("Za ove serije skenovi nisu spremljeni u Drive: " + ", ".join(done["missing"]))
+                kinds = done["kinds"]
+                mail_kind = (kontakti.KIND_TEACHERS if all("nastavnik" in k.lower() for k in kinds)
+                             else kontakti.KIND_STUDIES)
+                email_block(
+                    "mail_delivery", fac, [("Mapa", done["link"], True)],
+                    lambda greet, chosen, sig: kontakti.compose_folder(
+                        kinds, fac, chosen[0][1] if chosen else "", done["year"], greet, sig),
+                    kind=mail_kind,
+                )

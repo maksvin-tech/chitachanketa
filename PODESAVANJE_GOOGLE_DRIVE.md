@@ -89,3 +89,17 @@ Pristup možete potpuno opozvati na <https://myaccount.google.com/permissions>.
      *Postavke → Aplikacije → Zadane aplikacije → Outlook* (ili *MAILTO* → Outlook).
 4. **Svi izvještaji odjednom:** kad izradite izvještaje za **jedan** fakultet, ispod se pojavi isti
    e-mail s poveznicom na mapu svih izvještaja tog fakulteta.
+
+## 📦 Mapa za fakultet (izvještaji + skenovi, bez Excela)
+
+Na dnu aplikacije: **Učitaj spremljene serije svih obrazaca** → odaberite fakultet i akademsku godinu →
+provjerite serije sa skenovima → **📦 Pripremi mapu za fakultet**. Program složi i podijeli
+(svatko s poveznicom može gledati) mapu:
+
+    OMR Ankete/Za fakultete/<fakultet>/<2025-2026>/
+        Prijediplomski studij/  <PDF izvještaji>   Skenirane ankete/<kod studij>/<skenovi>
+        Diplomski studij/       <PDF izvještaji>   Skenirane ankete/<kod studij>/<skenovi>
+
+Ispod se pojavi e-mail s poveznicom na tu mapu. Excel tablice ne idu u mapu. PDF izvještaje
+prvo izradite (gore, *Izradi izvještaje* za taj fakultet). Ponovno pokretanje dodaje samo ono
+čega još nema u mapi.

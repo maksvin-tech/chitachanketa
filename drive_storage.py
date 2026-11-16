@@ -379,6 +379,88 @@ def share_with_link(service, link):
     return link
 
 
+# ------------------------------------------------------------------------------
+# Mapa za fakultet: PDF izvještaji + skenirane ankete na jednom mjestu (bez Excela)
+# ------------------------------------------------------------------------------
+
+DELIVERY_FOLDER = "Za fakultete"
+SCANS_SUBFOLDER = "Skenirane ankete"
+
+
+def _find_path(service, *names):
+    """Kao _ensure_path, ali ništa ne stvara: vraća mapu ili None."""
+    parent = None
+    for name in names:
+        parent = _find_folder(service, name, parent["id"] if parent else None)
+        if not parent:
+            return None
+    return parent
+
+
+def _files_in(service, folder_id):
+    return _list(service, f"'{folder_id}' in parents and mimeType != '{FOLDER_MIME}' and trashed = false",
+                 fields="id, name")
+
+
+def list_reports(service, form_type, folder_name):
+    """PDF izvještaji jednog fakulteta: Izvještaji/<obrazac>/<fakultet>/*.pdf"""
+    folder = _find_path(service, ROOT_FOLDER, REPORTS_FOLDER, form_type, folder_name)
+    if not folder:
+        return []
+    return [f for f in _files_in(service, folder["id"]) if f["name"].lower().endswith(".pdf")]
+
+
+def scan_folder_id(service, form_type, batch):
+    """Mapa sa skenovima jedne serije: Skenovi/<obrazac>/<serija>, ili None."""
+    folder = _find_path(service, ROOT_FOLDER, SCANS_FOLDER, form_type, batch)
+    return folder["id"] if folder else None
+
+
+def _copy_missing(service, source_files, dest_id):
+    """Kopira datoteke u mapu; one s istim imenom koje su već ondje preskače (ponovno pokretanje
+    ne stvara duplikate). Vraća broj kopiranih."""
+    have = {f["name"] for f in _files_in(service, dest_id)}
+    n = 0
+    for f in source_files:
+        if f["name"] in have:
+            continue
+        service.files().copy(fileId=f["id"], body={"name": f["name"], "parents": [dest_id]}, fields="id").execute()
+        have.add(f["name"])
+        n += 1
+    return n
+
+
+def prepare_delivery(service, faculty_folder, year_folder, parts, progress=None):
+    """Složi mapu za slanje fakultetu i podijeli je (svatko s poveznicom može gledati).
+
+        OMR Ankete/Za fakultete/<fakultet>/<ak. god.>/<vrsta>/<izvještaji>.pdf
+                                                     /<vrsta>/Skenirane ankete/<studij ili nastavnik>/<slike>
+
+    parts    : popis (naziv vrste, [PDF datoteke {id, name}], [(naziv podmape, id mape sa skenovima)])
+    progress : funkcija(udio 0-1, tekst) ili None
+    Vraća (poveznica na mapu, broj kopiranih izvještaja, broj kopiranih skenova)."""
+    dest = _ensure_path(service, ROOT_FOLDER, DELIVERY_FOLDER, faculty_folder, year_folder)
+    steps = sum(1 + len(scans) for _, _, scans in parts) or 1
+    done, n_reports, n_scans = 0, 0, 0
+    for kind_name, report_files, scans in parts:
+        kind_folder = _ensure_folder(service, kind_name, dest["id"])
+        n_reports += _copy_missing(service, report_files, kind_folder["id"])
+        done += 1
+        if progress:
+            progress(done / steps, f"{kind_name}: izvještaji")
+        if scans:
+            scans_root = _ensure_folder(service, SCANS_SUBFOLDER, kind_folder["id"])
+            for label, source_id in scans:
+                target = _ensure_folder(service, label, scans_root["id"])
+                n_scans += _copy_missing(service, _files_in(service, source_id), target["id"])
+                done += 1
+                if progress:
+                    progress(done / steps, f"{kind_name}: skenovi {label}")
+    link = dest.get("webViewLink") or service.files().get(fileId=dest["id"], fields="webViewLink").execute()["webViewLink"]
+    share_with_link(service, link)
+    return link, n_reports, n_scans
+
+
 def root_folder_link(service):
     root = _find_folder(service, ROOT_FOLDER)
     return root.get("webViewLink") if root else None

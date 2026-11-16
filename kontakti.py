@@ -201,6 +201,28 @@ def compose_bulk(kind, faculty, folder_link, count, year=None, greet=DEFAULT_GRE
     return subject, body
 
 
+def _and(items):
+    items = [i for i in items if i]
+    return " i ".join([", ".join(items[:-1]), items[-1]]) if len(items) > 1 else (items[0] if items else "")
+
+
+def compose_folder(kinds, faculty, folder_link, year=None, greet=DEFAULT_GREETING, signature=True):
+    """Poruka s poveznicom na mapu fakulteta (izvještaji i skenirane ankete).
+    kinds: nazivi vrsta u mapi, npr. ["Prijediplomski studij", "Diplomski studij"]"""
+    studies = [k.split()[0].lower() for k in kinds if "studij" in k.lower()]
+    surveys = []
+    if any("nastavnik" in k.lower() for k in kinds):
+        surveys.append("procjenu nastavnika")
+    if studies:
+        surveys.append(f"vrednovanje studija ({_and(studies)} studij)")
+    survey_text = _and(surveys) or "studentske ankete"
+    subject = f"Rezultati anketa – {faculty}"
+    body = (f"{greet}\n\nšaljem vam poveznicu na mapu s izvješćima i skeniranim anketama o provedenoj anketi "
+            f"za {survey_text}{f', ak. god. {year.rstrip(chr(46))}' if year else ''}.\n\n"
+            f"Mapa: {folder_link}\n\n" + (SIGNATURE if signature else "Srdačan pozdrav,\nMaks Vinšćak"))
+    return subject, body
+
+
 def mailto(to, subject, body, cc=None):
     """Poveznica koja otvara novu poruku u zadanom programu za e-poštu (Outlook)."""
     params = [f"subject={quote(subject)}", f"body={quote(body.replace(chr(10), chr(13) + chr(10)))}"]
