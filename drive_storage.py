@@ -360,6 +360,25 @@ def save_report(service, form_type, folder_name, file_name, data):
     return f.get("webViewLink"), folder.get("webViewLink")
 
 
+def _id_from_link(link):
+    """ID datoteke ili mape iz poveznice .../file/d/<id>/... ili .../folders/<id>."""
+    import re
+    m = re.search(r"/(?:file/d|folders)/([A-Za-z0-9_-]+)", link or "")
+    return m.group(1) if m else None
+
+
+def share_with_link(service, link):
+    """Svatko tko ima poveznicu može gledati (ne i mijenjati) tu datoteku ili mapu.
+    Isto kao "Dijeli -> Svatko s vezom" u Driveu. Vraća istu poveznicu."""
+    file_id = _id_from_link(link)
+    if not file_id:
+        raise ValueError("Neispravna poveznica na Google Drive.")
+    service.permissions().create(
+        fileId=file_id, body={"type": "anyone", "role": "reader"}, fields="id"
+    ).execute()
+    return link
+
+
 def root_folder_link(service):
     root = _find_folder(service, ROOT_FOLDER)
     return root.get("webViewLink") if root else None

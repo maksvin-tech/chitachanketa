@@ -14,6 +14,7 @@ from pdfminer.high_level import extract_pages
 from pdfminer.layout import LTTextContainer, LTChar
 
 import drive_storage as drive
+import kontakti
 import programi
 import reports
 
@@ -704,6 +705,29 @@ else:
                 st.session_state.pop(k, None)
             st.rerun()
 
+# --- Kontakti fakulteta (za e-mail uz gotov izvještaj); popis nije u repozitoriju ---
+st.sidebar.markdown("---")
+st.sidebar.subheader("📇 Kontakti fakulteta")
+if "contacts" not in st.session_state:
+    st.session_state.contacts = kontakti.load_contacts()
+_contacts = st.session_state.contacts
+if _contacts.empty:
+    st.sidebar.info("Učitajte tablicu kontakata (preuzetu kao .xlsx ili .csv) - koristi se za e-mail fakultetu.")
+else:
+    st.sidebar.caption(f"Učitano {len(_contacts)} adresa s {_contacts['Fakultet'].nunique()} fakulteta.")
+with st.sidebar.expander("Zamijeni popis kontakata" if not _contacts.empty else "Učitaj popis kontakata",
+                         expanded=_contacts.empty):
+    contacts_file = st.file_uploader("Tablica kontakata", type=["xlsx", "csv"], key="contacts_upload")
+    if contacts_file is not None and st.button("Spremi kontakte", key="contacts_save"):
+        try:
+            new_contacts = kontakti.parse_upload(contacts_file.name, contacts_file.getvalue())
+            kontakti.save_contacts(new_contacts)
+            st.session_state.contacts = new_contacts
+            st.success(f"Spremljeno {len(new_contacts)} adresa.")
+            st.rerun()
+        except Exception as e:
+            st.error(f"Tablica se ne može učitati: {e}")
+
 # --- Postavke PDF izvještaja (vrijede za sve izvještaje u ovom krugu anketiranja) ---
 if reports.has_report(form_type):
     st.sidebar.markdown("---")
@@ -720,6 +744,64 @@ if reports.has_report(form_type):
         key=f"report_year|{report_def['year_offset']}",
     ).strip()
     report_date = st.sidebar.date_input("Datum izvještaja", format="DD.MM.YYYY", key="report_date")
+
+MAIL_KIND = kontakti.KIND_TEACHERS if "nastavnik" in form_type.lower() else kontakti.KIND_STUDIES
+
+
+def email_block(key, faculty, links, make_message):
+    """E-mail fakultetu: odabir primatelja s popisa, standardni tekst i otvaranje u Outlooku.
+
+    links        : popis (opis, poveznica na Google Drive, uključeno_odmah)
+    make_message : funkcija (oslovljavanje, odabrane poveznice, potpis) -> (naslov, tekst)
+    """
+    st.markdown("#### ✉️ E-mail fakultetu")
+    contacts = st.session_state.get("contacts")
+    if contacts is None or contacts.empty:
+        st.info("Za e-mail učitajte popis kontakata fakulteta u bočnoj traci (📇 Kontakti fakulteta).")
+        return
+    good, rest = kontakti.suggestions(contacts, faculty, MAIL_KIND)
+    options = good + rest
+    if not good:
+        st.warning(f"Za „{faculty}” nema kontakta za ovu vrstu ankete - odaberite primatelja s popisa.")
+    pick = st.selectbox(
+        "Primatelj", range(len(options)), key=f"{key}_to|{faculty}",
+        format_func=lambda i: ("⭐ " if i < len(good) else "") + kontakti.label(options[i]),
+        help="⭐ = kontakt tog fakulteta za ovu vrstu ankete (prvi su oni s kojima se već dopisivalo).",
+    )
+    contact = options[pick]
+    if contact.get("Napomena"):
+        st.caption(f"Napomena uz kontakt: {contact['Napomena']}")
+    chosen = [(d, u) for d, u, on in links
+              if st.checkbox(f"Poveznica: {d}", value=on, key=f"{key}_link|{d}")]
+    signature = st.checkbox("Dodaj potpis (isključite ako ga Outlook dodaje sam)", value=True, key=f"{key}_sig")
+
+    subject, body = make_message(kontakti.greeting(contact), chosen, signature)
+    # Ključ ovisi o primatelju i poveznicama: promjena odabira ponovno složi tekst
+    fp = "|".join([contact["E-mail"], subject, body])
+    subject = st.text_input("Naslov", value=subject, key=f"{key}_subj|{hash(fp)}")
+    body = st.text_area("Tekst poruke (može se mijenjati)", value=body, height=260, key=f"{key}_body|{hash(fp)}")
+
+    ready_key = f"{key}_ready"
+    current = (contact["E-mail"], subject, body)
+    if st.button("✉️ Pripremi e-mail", key=f"{key}_prepare", disabled=not chosen):
+        try:
+            shared = st.session_state.setdefault("shared_links", set())
+            with st.spinner("Dijelim poveznice (svatko s poveznicom može gledati)..."):
+                for _, url in chosen:
+                    if url not in shared:
+                        drive.share_with_link(drive_service, url)
+                        shared.add(url)
+            st.session_state[ready_key] = (current, kontakti.mailto(contact["E-mail"], subject, body))
+        except Exception as e:
+            st.error(f"Poveznice se ne mogu podijeliti: {e}")
+    if not chosen:
+        st.caption("Odaberite barem jednu poveznicu.")
+    ready = st.session_state.get(ready_key)
+    if ready and ready[0] == current:
+        st.link_button("📧 Otvori u Outlooku", ready[1], type="primary")
+        st.caption(f"Poruka se otvara u Outlooku na ovom računalu, od računa koji je ondje prijavljen. "
+                   f"Provjerite je i pritisnite Pošalji. Ako se Outlook ne otvori, primatelj je: {contact['E-mail']}")
+
 
 cfg = CONFIG[form_type]
 if not os.path.exists(cfg["pdf"]):
@@ -1220,6 +1302,23 @@ if uploaded_files:
             if links:
                 st.markdown(" · ".join(links))
 
+        # E-mail fakultetu: poveznice na izvještaj (i skenove) u Google Driveu
+        stored = st.session_state.get("batch_report")
+        report_link = None
+        if stored and reports.has_report(form_type) and stored["key"] == report_key:
+            report_link = (stored.get("drive") or {}).get("file")
+        if not report_link:
+            st.caption("✉️ Kad izradite PDF izvještaj (spremi se u Google Drive), ovdje možete složiti e-mail fakultetu.")
+        else:
+            mail_links = [("Izvješće", report_link, True)]
+            if info and info.get("scans_link"):
+                mail_links.append(("Skenirane ankete", info["scans_link"], True))
+            email_block(
+                "mail_batch", info_values.get("Fakultet", ""), mail_links,
+                lambda greet, chosen, sig: kontakti.compose(
+                    MAIL_KIND, info_values, chosen, report_semester, report_year, greet, sig),
+            )
+
 
 # ==============================================================================
 # 5. SVI SPREMLJENI REZULTATI IZ GOOGLE DRIVEA (osnova za izvještaje)
@@ -1309,7 +1408,7 @@ if drive_service is not None:
                         progress.empty()
                         st.session_state.bulk_reports = {
                             "form": form_type, "zip": zip_buf.getvalue(), "count": len(selected),
-                            "problems": problems, "folders": drive_folders,
+                            "problems": problems, "folders": drive_folders, "faculty": chosen,
                             "name": f"Izvjestaji_{reports.safe_file_part(chosen)}.zip",
                         }
 
@@ -1325,3 +1424,15 @@ if drive_service is not None:
                                     st.write("- " + msg)
                         st.download_button("⬇️ Preuzmi sve izvještaje (.zip)", data=done["zip"],
                                            file_name=done["name"], mime="application/zip")
+                        # E-mail s poveznicom na mapu izvještaja - samo kad su izrađeni za jedan fakultet
+                        faculty_done = done.get("faculty")
+                        folder_link = done["folders"].get(reports.safe_file_part(faculty_done or ""))
+                        if faculty_done and faculty_done != "Svi fakulteti" and folder_link:
+                            email_block(
+                                "mail_bulk", faculty_done, [("Izvješća", folder_link, True)],
+                                lambda greet, chosen, sig: kontakti.compose_bulk(
+                                    MAIL_KIND, faculty_done, chosen[0][1] if chosen else "", done["count"],
+                                    report_year, greet, sig),
+                            )
+                        elif done["folders"]:
+                            st.caption("✉️ E-mail fakultetu: izradite izvještaje za jedan fakultet (odabir gore).")

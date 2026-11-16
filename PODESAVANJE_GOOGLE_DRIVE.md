@@ -67,3 +67,25 @@ Datoteke koje sami dodate u te mape program neće vidjeti.
 ## Odjava
 U lijevom izborniku **Odjava s Google Drivea** briše spremljenu prijavu s tog računala.
 Pristup možete potpuno opozvati na <https://myaccount.google.com/permissions>.
+
+## E-mail fakultetu uz gotov izvještaj
+
+1. **Kontakti (jednom):** tablicu *Kontakti fakulteta – studentske ankete* preuzmite kao `.xlsx`
+   (ili `.csv`) i učitajte je u bočnoj traci, pod **📇 Kontakti fakulteta** → *Spremi kontakte*.
+   Program je sprema kao `kontakti.csv` uz `google_credentials.json` (ne ide na GitHub).
+   Kad se tablica promijeni, učitajte je ponovno (*Zamijeni popis kontakata*).
+2. **Izvještaj:** izradite PDF izvještaj (sprema se u Google Drive) i spremite seriju u Google Drive
+   sa skenovima.
+3. **E-mail:** ispod spremanja pojavi se **✉️ E-mail fakultetu**. Kontakti tog fakulteta za tu vrstu
+   ankete označeni su ⭐. Odaberite primatelja, provjerite tekst (može se mijenjati) i kliknite
+   **✉️ Pripremi e-mail** → **📧 Otvori u Outlooku**. Poruka se otvori u Outlooku na računalu, od računa
+   koji je ondje prijavljen (mvinscak@unizg.hr); provjerite je i pritisnite *Pošalji*.
+   - Izvještaj i mapa sa skenovima dijele se tako da ih **svatko s poveznicom može gledati**
+     (kao *Dijeli → Svatko s vezom* u Driveu), umjesto WeTransfera.
+   - Oslovljavanje (npr. *Poštovana kolegice Borošić,*) uzima se iz stupca *Oslovljavanje*;
+     prazno = *Poštovani,*.
+   - Ako Outlook sam dodaje potpis, isključite *Dodaj potpis*.
+   - Ako se klikom ništa ne otvori, Outlook nije zadani program za e-poštu u Windowsima:
+     *Postavke → Aplikacije → Zadane aplikacije → Outlook* (ili *MAILTO* → Outlook).
+4. **Svi izvještaji odjednom:** kad izradite izvještaje za **jedan** fakultet, ispod se pojavi isti
+   e-mail s poveznicom na mapu svih izvještaja tog fakulteta.

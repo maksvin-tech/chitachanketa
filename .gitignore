@@ -8,3 +8,6 @@ rezultati_anketa.xlsx
 __pycache__/
 *.pyc
 .streamlit/secrets.toml
+
+# Kontakti fakulteta (tuđe e-mail adrese) - ne idu na GitHub
+kontakti.csv
