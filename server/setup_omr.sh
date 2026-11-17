@@ -125,7 +125,7 @@ mkdir -p /etc/caddy/sites
 cat > "$SITE" <<CADDY
 $DOMAIN {
 	encode zstd gzip
-	# Javne stranice za Google (početna stranica i pravila privatnosti) - bez lozinke
+	# Javne stranice (početna stranica i pravila privatnosti) - bez lozinke
 	handle /info* {
 		root * $APP/server/web
 		file_server

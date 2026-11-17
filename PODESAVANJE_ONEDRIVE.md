@@ -26,6 +26,7 @@ OMR Ankete/
   Skenovi/<vrsta obrasca>/<fakultet>/<studijski program ili nastavnik>/<datum_vrijeme>_<računalo>_<naziv>/<slike>
   Izvještaji/<vrsta obrasca>/<fakultet>/<izvještaj>.pdf
   Za fakultete/<fakultet>/<ak. god.>/<vrsta>/...      <- mapa koja se šalje fakultetu
+  poslano.json                                        <- koji je fakultet već dobio mapu (zajedničko svim računalima)
 ```
 Studijski program je mapa s kodom i nazivom (npr. `0190 Geoinženjerstvo`), nastavnik mapa s imenom.
 Nemojte ručno premještati ili preimenovati mape – program ih traži po imenu.

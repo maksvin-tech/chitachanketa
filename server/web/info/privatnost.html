@@ -18,17 +18,27 @@ papirnatih anketa i izradu izvještaja.</p>
 
 <h2>Koji se podaci obrađuju</h2>
 <p>Skenirani anketni listići i odgovori s njih. Ankete su anonimne: ne sadrže imena studenata.
-Uz rezultate se upisuju samo podaci o anketiranju (sastavnica, studijski program, kolegij i nastavnik).</p>
+Uz rezultate se upisuju samo podaci o anketiranju (sastavnica, studijski program, kolegij i nastavnik).
+Za slanje rezultata vodi se popis kontakt-osoba sastavnica (ime i službena e-adresa) i evidencija
+kojoj je sastavnici i kada poslana mapa s rezultatima.</p>
 
-<h2>Google Drive</h2>
-<p>Program se prijavljuje u Google Drive ureda s ovlašću <em>drive.file</em>: vidi i mijenja samo datoteke
-koje je sam stvorio (mapa „OMR Ankete”), a ne i ostale datoteke na Driveu. Podaci iz Googlea ne koriste se
-ni za što osim za spremanje i učitavanje tih rezultata, skenova i izvještaja, i ne dijele se s trećim stranama.</p>
+<h2>Microsoft OneDrive</h2>
+<p>Rezultati, skenovi i izvještaji spremaju se u službeni OneDrive ureda (Microsoft 365 Sveučilišta u Zagrebu,
+račun @unizg.hr), u mapu „OMR Ankete”. Program se prijavljuje kao aplikacija „OMR Ankete” registrirana
+u sustavu Sveučilišta, s ovlastima <em>Files.ReadWrite</em> (datoteke u OneDriveu prijavljenog korisnika),
+<em>User.Read</em> (ime i e-adresa prijavljenog korisnika) i <em>offline_access</em> (da prijava ostane valjana).
+Program radi samo s mapom „OMR Ankete”; ostale datoteke ne čita i ne mijenja.</p>
+<p>Sastavnica dobiva svoje rezultate kao poveznicu na mapu u OneDriveu (samo za čitanje), poslanu e-poštom
+kontakt-osobi sastavnice. Poveznica se izrađuje tek kad se rezultati šalju; ostali podaci nisu dijeljeni.
+Podaci se ne dijele s trećim stranama i ne koriste se ni za što osim za izradu i dostavu izvještaja.</p>
+<p>Do 16. 11. 2026. podaci su se spremali u Google Drive ureda. Prenijeti su u OneDrive, a kopija u
+Google Driveu briše se nakon provjere prijenosa.</p>
 
 <h2>Poslužitelj</h2>
-<p>Program radi na poslužitelju ureda u Europskoj uniji (Oracle Cloud, Frankfurt). Učitani skenovi
-drže se u memoriji samo dok traje obrada; trajno se spremaju jedino u Google Drive ureda.
-Na poslužitelju ostaje samo prijava u Google Drive, koju se može opozvati u postavkama Google računa.</p>
+<p>Program radi na poslužitelju ureda u Europskoj uniji (Oracle Cloud, Frankfurt), zaštićen lozinkom.
+Učitani skenovi drže se u memoriji samo dok traje obrada; trajno se spremaju jedino u OneDrive ureda.
+Na poslužitelju ostaju samo prijava u OneDrive (može se opozvati odjavom u programu ili u postavkama
+Microsoft računa) i popis kontakt-osoba sastavnica.</p>
 
 <h2>Kontakt</h2>
 <p>Ured za upravljanje kvalitetom, Sveučilište u Zagrebu.</p>

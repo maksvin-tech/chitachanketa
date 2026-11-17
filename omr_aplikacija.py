@@ -638,6 +638,12 @@ else:
     except Exception as e:
         st.sidebar.error(f"Greška pri spajanju na OneDrive: {e}")
 
+    if drive_service is not None:  # Oznake "poslano" zajedničke su svim računalima (OneDrive)
+        kontakti.use_remote(lambda svc=drive_service: drive.read_json(svc, kontakti.SENT_NAME),
+                            lambda data, svc=drive_service: drive.write_json(svc, kontakti.SENT_NAME, data))
+    else:
+        kontakti.use_remote(None, None)
+
     if drive_service is None:
         login = st.session_state.get("ms_login")
         if login is None:
@@ -1604,6 +1610,8 @@ with step5:
                             st.rerun()
 
             sent_all = kontakti.load_sent()
+            if kontakti.last_error:
+                st.warning(kontakti.last_error)
             with st.expander(f"📋 Pregled poslanog ({len(sent_all)} fakulteta)"):
                 if sent_all:
                     st.dataframe(pd.DataFrame(sent_all.values()).rename(columns={

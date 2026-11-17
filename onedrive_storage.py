@@ -629,6 +629,21 @@ def prepare_delivery(service, faculty_folder, year_folder, parts, progress=None)
     return share_with_link(service, dest["webUrl"]), n_reports, n_scans
 
 
+def read_json(service, name):
+    """JSON datoteka u mapi OMR Ankete (npr. poslano.json) ili None ako je još nema."""
+    root = _find_folder(service, ROOT_FOLDER)
+    item = _child(service, root["id"], name) if root else None
+    if not item or "folder" in item:
+        return None
+    return json.loads(_download(service, item["id"]).decode("utf-8"))
+
+
+def write_json(service, name, data):
+    root = _ensure_folder(service, ROOT_FOLDER)
+    body = json.dumps(data, ensure_ascii=False, indent=1).encode("utf-8")
+    _upload(service, name, body, root["id"], conflict="replace")
+
+
 def root_folder_link(service):
     root = _find_folder(service, ROOT_FOLDER)
     return root.get("webUrl") if root else None

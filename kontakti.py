@@ -229,11 +229,20 @@ def compose_folder(kinds, faculty, folder_link, year=None, greet=DEFAULT_GREETIN
 # Evidencija poslanog: koji je fakultet za koju godinu već dobio mapu (da se ne šalje više puta)
 # ------------------------------------------------------------------------------
 
-SENT_FILE = os.path.join(DATA_DIR, "poslano.json")
+SENT_FILE = os.path.join(DATA_DIR, "poslano.json")      # Samo kad OneDrive nije povezan (ili nije dostupan)
+SENT_NAME = "poslano.json"                              # Zajednička evidencija: OneDrive / OMR Ankete / poslano.json
+_remote = {"load": None, "save": None, "data": None, "time": 0.0}
+REMOTE_TTL = 30  # sekundi: koliko se dugo koristi zadnje pročitano stanje iz OneDrivea
+last_error = ""
 
 
-def load_sent():
-    """{"<fakultet>|<godina>": {"fakultet", "godina", "datum", "primatelj", "kopija", "mapa"}}"""
+def use_remote(load_fn, save_fn):
+    """Evidencija poslanog u OneDriveu (zajednička za sva računala i poslužitelj).
+    load_fn() -> dict ili None, save_fn(dict). Poziva se pri svakom pokretanju stranice kad je OneDrive povezan."""
+    _remote["load"], _remote["save"] = load_fn, save_fn
+
+
+def _read_local():
     import json
     try:
         with open(SENT_FILE, encoding="utf-8") as f:
@@ -242,7 +251,7 @@ def load_sent():
         return {}
 
 
-def _write_sent(data):
+def _write_local(data):
     import json
     os.makedirs(DATA_DIR, exist_ok=True)
     tmp = SENT_FILE + ".tmp"
@@ -251,22 +260,67 @@ def _write_sent(data):
     os.replace(tmp, SENT_FILE)
 
 
+def _load_remote(fresh=False):
+    """Stanje iz OneDrivea; oznake spremljene samo na ovom računalu jednom se prenesu u OneDrive."""
+    import time
+    global last_error
+    if not fresh and _remote["data"] is not None and time.time() - _remote["time"] < REMOTE_TTL:
+        return _remote["data"]
+    data = _remote["load"]() or {}
+    local = _read_local()
+    missing = {k: v for k, v in local.items() if k not in data}
+    if missing:
+        data.update(missing)
+        _remote["save"](data)
+    if os.path.exists(SENT_FILE):  # Preneseno -> lokalna datoteka ostaje samo kao kopija
+        os.replace(SENT_FILE, os.path.join(DATA_DIR, "poslano_preneseno_u_onedrive.json"))
+    _remote["data"], _remote["time"] = data, time.time()
+    last_error = ""
+    return data
+
+
+def load_sent():
+    """{"<fakultet>|<godina>": {"fakultet", "godina", "datum", "primatelj", "kopija", "mapa"}}"""
+    global last_error
+    if _remote["load"]:
+        try:
+            return dict(_load_remote())
+        except Exception as e:
+            last_error = f"Evidencija poslanog nije pročitana iz OneDrivea ({e}); prikazano je stanje s ovog računala."
+    return _read_local()
+
+
+def _change_sent(change):
+    """Promjena evidencije: u OneDriveu (svježe pročitano), a ako OneDrive nije dostupan, na ovom računalu."""
+    global last_error
+    if _remote["load"]:
+        try:
+            data = dict(_load_remote(fresh=True))
+            change(data)
+            _remote["save"](data)
+            _remote["data"] = data
+            return
+        except Exception as e:
+            last_error = (f"Oznaka nije spremljena u OneDrive ({e}); spremljena je samo na ovom računalu "
+                          "i prenijet će se kad OneDrive opet bude dostupan.")
+    data = _read_local()
+    change(data)
+    _write_local(data)
+
+
 def sent_key(faculty, year):
     return f"{faculty}|{year}"
 
 
 def mark_sent(faculty, year, to="", cc=(), folder_link=""):
     from datetime import datetime
-    data = load_sent()
-    data[sent_key(faculty, year)] = {"fakultet": faculty, "godina": year, "datum": f"{datetime.now():%d.%m.%Y. %H:%M}",
-                                     "primatelj": to, "kopija": ", ".join(cc), "mapa": folder_link}
-    _write_sent(data)
+    record = {"fakultet": faculty, "godina": year, "datum": f"{datetime.now():%d.%m.%Y. %H:%M}",
+              "primatelj": to, "kopija": ", ".join(cc), "mapa": folder_link}
+    _change_sent(lambda data: data.__setitem__(sent_key(faculty, year), record))
 
 
 def unmark_sent(faculty, year):
-    data = load_sent()
-    data.pop(sent_key(faculty, year), None)
-    _write_sent(data)
+    _change_sent(lambda data: data.pop(sent_key(faculty, year), None))
 
 
 def mailto(to, subject, body, cc=None):
