@@ -408,6 +408,17 @@ def _text(value):
     return "" if t.lower() in ("nan", "none") else t
 
 
+_PROGRAMS = None
+
+
+def _programs():
+    global _PROGRAMS
+    if _PROGRAMS is None:
+        import programi
+        _PROGRAMS = programi.load()
+    return _PROGRAMS
+
+
 def batch_folders(form_type, values):
     """[fakultet, studijski program ili nastavnik] - podmape u Rezultati/ i Skenovi/.
     values: upisani podaci serije (Fakultet, Kod studijskog programa, Studijski program, Nastavnik)."""
@@ -415,10 +426,12 @@ def batch_folders(form_type, values):
     if "nastavnik" in form_type.lower():
         group = folder_part(_text(values.get("Nastavnik"))) or "Bez nastavnika"
     else:
-        code = _text(values.get("Kod studijskog programa"))
-        if code.replace(".", "", 1).isdigit():
-            code = code.split(".")[0].zfill(4)  # 190 / "190.0" -> "0190"
-        group = folder_part(" ".join(p for p in [code, _text(values.get("Studijski program"))] if p))
+        import programi
+        code = programi.normalize_code(values.get("Kod studijskog programa"))  # 190 / "190.0" -> "0190"
+        entry = programi.lookup(_programs(), code, form_type) if code else None
+        name = entry["program"] if entry else _text(values.get("Studijski program"))
+        name = name.split(";")[0].strip()  # Mapa bez popisa smjerova: "0190 Inženjerstvo okoliša"
+        group = folder_part(" ".join(p for p in [code, name] if p))
         group = group or "Bez studijskog programa"
     return [faculty, group]
 

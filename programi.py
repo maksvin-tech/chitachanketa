@@ -23,6 +23,24 @@ RENAME = {
     "Šumarski fakultet": "Fakultet šumarstva i drvne tehnologije",
     "Hrvatski studiji": "Fakultet hrvatskih studija",
 }
+# Ispravci zastarjelih naziva u službenoj tablici kodova (vrijede i nakon učitavanja nove tablice)
+CORRECTIONS = {
+    # Geotehnički fakultet, e-mail R. Biondića 17.11.2026.: program se godinama zove Inženjerstvo okoliša
+    "0190": {
+        "program": "Inženjerstvo okoliša; smjerovi: Geoinženjerstvo okoliša, Upravljanje vodama, Upravljanje okolišem",
+        "puni_naziv": "Diplomski sveučilišni studij Inženjerstvo okoliša; smjerovi: Geoinženjerstvo okoliša, "
+                      "Upravljanje vodama, Upravljanje okolišem",
+    },
+}
+
+
+def _apply_corrections(programs):
+    for code, fix in CORRECTIONS.items():
+        for e in programs.get(code, []):
+            e.update(fix)
+    return programs
+
+
 # Riječi koje opisuju vrstu studija - skidaju se s početka naziva da ostane ime programa
 LEVEL_WORDS = {
     "integrirani", "preddiplomski", "prijediplomski", "prediplomski", "diplomski", "sveučilišni",
@@ -40,7 +58,29 @@ def load(path=PROGRAMS_FILE):
     if not os.path.exists(path):
         return {}
     with open(path, encoding="utf-8") as f:
-        return json.load(f)
+        return _apply_corrections(json.load(f))
+
+
+def normalize_code(code):
+    """'190', 190.0, '0190' -> '0190'; ostalo nepromijenjeno."""
+    t = "" if code is None else str(code).strip()
+    if t.lower() in ("nan", "none"):
+        return ""
+    if re.fullmatch(r"\d{1,4}(\.0+)?", t):
+        return t.split(".")[0].zfill(4)
+    return t
+
+
+def refresh_names(df, programs, form_type=None, code_col="Kod studijskog programa", name_col="Studijski program"):
+    """Spremljene ankete: kod na 4 znamenke i naziv programa prema (ispravljenom) popisu kodova."""
+    if df is None or df.empty or code_col not in df.columns:
+        return df
+    df[code_col] = df[code_col].map(normalize_code)
+    for code in df[code_col].unique():
+        entry = lookup(programs, code, form_type) if code else None
+        if entry:
+            df.loc[df[code_col] == code, name_col] = entry["program"]
+    return df
 
 
 def lookup(programs, code, form_type=None):
@@ -145,7 +185,7 @@ def parse_codes_table(path):
         header = _faculty_header(text)
         if header:
             faculty = header
-    return dict(sorted(out.items())), notes
+    return _apply_corrections(dict(sorted(out.items()))), notes
 
 
 if __name__ == "__main__":

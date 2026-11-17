@@ -1351,6 +1351,7 @@ def load_saved_all():
         df_form = drive.load_all_results(drive_service, form)
         if not df_form.empty and "Fakultet" in df_form.columns:
             df_form["Fakultet"] = df_form["Fakultet"].fillna("").astype(str).str.strip()
+            programi.refresh_names(df_form, PROGRAMS, form)  # Ispravljeni nazivi programa iz popisa kodova
             loaded[form] = df_form
     st.session_state.delivery_data = loaded
     st.session_state.pop("delivery_reports", None)
