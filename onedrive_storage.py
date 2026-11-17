@@ -1,11 +1,11 @@
 """
 Spremanje rezultata, skenova i izvještaja u poslovni OneDrive (mvinscak@unizg.hr).
 
-Ista struktura mapa kao ranije u Google Driveu:
+Struktura mapa (po fakultetu, zatim studijskom programu ili nastavniku):
 
     OMR Ankete/
-        Rezultati/<vrsta obrasca>/<serija>.xlsx
-        Skenovi/<vrsta obrasca>/<serija>/<izvorne slike>
+        Rezultati/<vrsta obrasca>/<fakultet>/<studij ili nastavnik>/<serija>.xlsx
+        Skenovi/<vrsta obrasca>/<fakultet>/<studij ili nastavnik>/<serija>/<izvorne slike>
         Izvještaji/<vrsta obrasca>/<fakultet>/<izvještaj>.pdf
         Za fakultete/<fakultet>/<ak. god.>/<vrsta>/...   (mapa koja se šalje fakultetu)
 
@@ -397,15 +397,43 @@ def new_batch_name(label="", now=None):
     return f"{name}_{label}" if label else name
 
 
-def save_batch(service, form_type, results_df, scans=None, previous=None, label=""):
-    """Sprema seriju anketa u OneDrive (vidi drive_storage.save_batch - isto sučelje)."""
+def folder_part(text, max_len=70):
+    """Naziv mape (isto pravilo kao reports.safe_file_part, da se mape fakulteta podudaraju)."""
+    cleaned = "".join("_" if c in '\\/:*?"<>|' else c for c in str(text))
+    return " ".join(cleaned.split())[:max_len].strip().rstrip(".").strip()
+
+
+def _text(value):
+    t = "" if value is None else str(value).strip()
+    return "" if t.lower() in ("nan", "none") else t
+
+
+def batch_folders(form_type, values):
+    """[fakultet, studijski program ili nastavnik] - podmape u Rezultati/ i Skenovi/.
+    values: upisani podaci serije (Fakultet, Kod studijskog programa, Studijski program, Nastavnik)."""
+    faculty = folder_part(_text(values.get("Fakultet"))) or "Bez fakulteta"
+    if "nastavnik" in form_type.lower():
+        group = folder_part(_text(values.get("Nastavnik"))) or "Bez nastavnika"
+    else:
+        code = _text(values.get("Kod studijskog programa"))
+        if code.replace(".", "", 1).isdigit():
+            code = code.split(".")[0].zfill(4)  # 190 / "190.0" -> "0190"
+        group = folder_part(" ".join(p for p in [code, _text(values.get("Studijski program"))] if p))
+        group = group or "Bez studijskog programa"
+    return [faculty, group]
+
+
+def save_batch(service, form_type, results_df, scans=None, previous=None, label="", folders=()):
+    """Sprema seriju anketa u OneDrive.
+    folders: podmape ispod vrste obrasca, npr. batch_folders(...) = [fakultet, studij ili nastavnik]."""
     if previous:
         f = _replace_content(service, previous["results_file_id"], dataframe_to_xlsx_bytes(results_df))
         return {**previous, "results_link": f.get("webUrl", previous.get("results_link")),
                 "rows": len(results_df), "updated": True}
 
     batch = new_batch_name(label)
-    results_folder = _ensure_path(service, ROOT_FOLDER, RESULTS_FOLDER, form_type)
+    folders = [f for f in folders if f]
+    results_folder = _ensure_path(service, ROOT_FOLDER, RESULTS_FOLDER, form_type, *folders)
     results_file = _upload(service, f"{batch}.xlsx", dataframe_to_xlsx_bytes(results_df), results_folder["id"])
 
     info = {
@@ -414,12 +442,13 @@ def save_batch(service, form_type, results_df, scans=None, previous=None, label=
         "rows": len(results_df),
         "results_file_id": results_file["id"],
         "results_link": results_file.get("webUrl"),
+        "results_folder_link": results_folder.get("webUrl"),
         "scans_saved": 0,
         "scans_link": None,
         "updated": False,
     }
     if scans:
-        scans_parent = _ensure_path(service, ROOT_FOLDER, SCANS_FOLDER, form_type)
+        scans_parent = _ensure_path(service, ROOT_FOLDER, SCANS_FOLDER, form_type, *folders)
         batch_folder = _ensure_folder(service, batch, scans_parent["id"])
         for name, data in scans:
             _upload(service, _safe_name(name, 120) or "sken", data, batch_folder["id"])
@@ -428,19 +457,39 @@ def save_batch(service, form_type, results_df, scans=None, previous=None, label=
     return info
 
 
+MAP_COLUMN = "Mapa"  # fakultet/studij - gdje je serija spremljena (za pronalazak skenova)
+
+
+def _xlsx_files(service, folder_id, path=()):
+    """Sve .xlsx datoteke u mapi i njezinim podmapama: (datoteka, putanja podmapa)."""
+    out = []
+    for item in _children(service, folder_id):
+        if "folder" in item:
+            out += _xlsx_files(service, item["id"], path + (item["name"],))
+        elif item["name"].lower().endswith(".xlsx"):
+            out.append((item, path))
+    return out
+
+
 def load_all_results(service, form_type):
-    """Sve spremljene serije jednog obrasca u jednoj tablici; stupac "Serija" na početku."""
+    """Sve spremljene serije jednog obrasca u jednoj tablici; stupci "Serija" i "Mapa" na početku."""
     folder = _find_path(service, ROOT_FOLDER, RESULTS_FOLDER, form_type)
     if not folder:
         return pd.DataFrame()
     frames = []
-    for f in _children(service, folder["id"]):
-        if "folder" in f or not f["name"].lower().endswith(".xlsx"):
-            continue
+    for f, path in _xlsx_files(service, folder["id"]):
         df = pd.read_excel(io.BytesIO(_download(service, f["id"])))
         df.insert(0, "Serija", os.path.splitext(f["name"])[0])
+        df.insert(1, MAP_COLUMN, "/".join(path))
         frames.append(df)
     return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+
+
+def move_item(service, item_id, dest_id):
+    """Premješta datoteku ili mapu (OneDrive to radi odmah). Vraća False ako u odredištu već postoji isto ime."""
+    r = service.call("PATCH", f"/me/drive/items/{item_id}", ok=(200, 409), json={
+        "parentReference": {"id": dest_id}, "@microsoft.graph.conflictBehavior": "fail"})
+    return r.status_code == 200
 
 
 def save_report(service, form_type, folder_name, file_name, data):
@@ -478,9 +527,14 @@ def list_reports(service, form_type, folder_name):
     return [f for f in _files_in(service, folder["id"]) if f["name"].lower().endswith(".pdf")]
 
 
-def scan_folder_id(service, form_type, batch):
-    folder = _find_path(service, ROOT_FOLDER, SCANS_FOLDER, form_type, batch)
-    return folder["id"] if folder else None
+def scan_folder_id(service, form_type, batch, map_path=""):
+    """Mapa sa skenovima serije: Skenovi/<obrazac>/<fakultet>/<studij>/<serija> (ili stari raspored bez podmapa)."""
+    sub = [p for p in str(map_path or "").split("/") if p and p.lower() != "nan"]
+    for path in ([sub, []] if sub else [[]]):
+        folder = _find_path(service, ROOT_FOLDER, SCANS_FOLDER, form_type, *path, batch)
+        if folder:
+            return folder["id"]
+    return None
 
 
 def _start_copies(service, source_files, dest_id):

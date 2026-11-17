@@ -1270,6 +1270,7 @@ if uploaded_files:
                         saved_batches[batch_key] = drive.save_batch(
                             drive_service, form_type, final_df, scans, previous=previous,
                             label=" - ".join(info_values[k] for k in cfg.get("batch_label", []) if info_values.get(k)),
+                            folders=drive.batch_folders(form_type, info_values),
                         )
                         file_link, folder_link = drive.save_report(
                             drive_service, form_type, reports.safe_file_part(info_values.get("Fakultet", "")),
@@ -1296,6 +1297,8 @@ if uploaded_files:
                 msg += " i PDF izvještaj."
                 st.success(msg)
                 links = [f"[{stored['name']}]({saved['file']})", f"[mapa izvještaja]({saved['folder']})"]
+                if info.get("results_folder_link"):
+                    links.append(f"[mapa rezultata]({info['results_folder_link']})")
                 if info.get("scans_link"):
                     links.append(f"[skenirane ankete]({info['scans_link']})")
                 st.markdown(" · ".join(links))
@@ -1560,7 +1563,10 @@ with step5:
                         for form, name, pdfs, chosen in parts_plan:
                             scans = []
                             for serija, label, _ in chosen:
-                                sid = drive.scan_folder_id(drive_service, form, serija)
+                                batch_rows = data[form][data[form]["Serija"] == serija]
+                                map_path = (batch_rows[drive.MAP_COLUMN].iloc[0]
+                                            if drive.MAP_COLUMN in batch_rows.columns and len(batch_rows) else "")
+                                sid = drive.scan_folder_id(drive_service, form, serija, map_path)
                                 (scans.append((label, sid)) if sid else missing.append(label))
                             if pdfs or scans:
                                 parts.append((name, pdfs, scans))
