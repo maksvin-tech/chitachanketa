@@ -27,7 +27,7 @@ RENAME = {
 CORRECTIONS = {
     # Geotehnički fakultet, e-mail R. Biondića 17.11.2026.: program se godinama zove Inženjerstvo okoliša
     "0190": {
-        "program": "Inženjerstvo okoliša; smjerovi: Geoinženjerstvo okoliša, Upravljanje vodama, Upravljanje okolišem",
+        "program": "Inženjerstvo okoliša",
         "puni_naziv": "Diplomski sveučilišni studij Inženjerstvo okoliša; smjerovi: Geoinženjerstvo okoliša, "
                       "Upravljanje vodama, Upravljanje okolišem",
     },
