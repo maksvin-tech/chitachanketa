@@ -78,8 +78,8 @@ def main():
 
     moved = in_place = problems = orphans = 0
     for form_folder in od._children(service, results_root["id"]):
-        if "folder" not in form_folder:
-            continue
+        if "folder" not in form_folder or form_folder["name"] == od.ISVU_FOLDER:
+            continue  # ISVU online tablice imaju vlastiti raspored (godina / semestar)
         form = form_folder["name"]
         scans_form = od._find_folder(service, form, scans_root["id"]) if scans_root else None
         scans = scan_dirs(service, scans_form["id"]) if scans_form else {}

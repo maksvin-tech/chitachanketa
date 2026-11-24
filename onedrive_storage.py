@@ -21,6 +21,7 @@ Ovlasti: Files.ReadWrite (vlastiti OneDrive), User.Read, offline_access.
 
 import base64
 import io
+import re
 import json
 import os
 import socket
@@ -505,12 +506,70 @@ def move_item(service, item_id, dest_id):
     return r.status_code == 200
 
 
-def save_report(service, form_type, folder_name, file_name, data):
-    """Sprema PDF u OMR Ankete/Izvještaji/<obrazac>/<folder_name>/ (isto ime -> zamjena sadržaja).
+def save_report(service, form_type, folder_name, file_name, data, subfolder=None):
+    """Sprema PDF u OMR Ankete/Izvještaji/<obrazac>/<folder_name>/[<subfolder>/] (isto ime -> zamjena sadržaja).
     Vraća (poveznica na datoteku, poveznica na mapu) - poveznice vide samo vi dok se ne podijele."""
-    folder = _ensure_path(service, ROOT_FOLDER, REPORTS_FOLDER, form_type, folder_name)
+    folder = _ensure_path(service, ROOT_FOLDER, REPORTS_FOLDER, form_type, folder_name, *([subfolder] if subfolder else []))
     f = _upload(service, file_name, data, folder["id"], conflict="replace")
     return f.get("webUrl"), folder.get("webUrl")
+
+
+# ------------------------------------------------------------------------------
+# ISVU online ankete (V4): Rezultati/ISVU online/<2025-26>/<Zimski semestar>/<fakultet>.xlsx (+ izvorni XML u .zip)
+# ------------------------------------------------------------------------------
+
+ISVU_FOLDER = "ISVU online"
+
+
+def year_folder(academic_year):
+    """"2025./2026." -> "2025-26"."""
+    years = re.findall(r"\d{4}", str(academic_year))
+    return f"{years[0]}-{years[1][2:]}" if len(years) >= 2 else folder_part(academic_year)
+
+
+def semester_folder(semester):
+    return f"{semester} semestar"
+
+
+def save_isvu_unit(service, meta, df, raw_files):
+    """Sprema jednu sastavnicu i semestar: tablicu (jedan redak po listiću) i izvorne XML datoteke (zip).
+    Ista sastavnica i semestar ponovno -> zamjena (novi izvoz iz ISVU-a vrijedi umjesto staroga)."""
+    import zipfile
+    folder = _ensure_path(service, ROOT_FOLDER, RESULTS_FOLDER, ISVU_FOLDER, year_folder(meta["Akademska godina"]),
+                          semester_folder(meta["Semestar"]))
+    name = folder_part(meta["Fakultet"]) or "Bez naziva"
+    table = _upload(service, f"{name}.xlsx", dataframe_to_xlsx_bytes(df), folder["id"], conflict="replace")
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        for file_name, data in raw_files:
+            z.writestr(file_name, data)
+    _upload(service, f"{name} - izvorni ISVU XML.zip", buf.getvalue(), folder["id"], conflict="replace")
+    return {"file": table.get("webUrl"), "folder": folder.get("webUrl")}
+
+
+def list_isvu(service):
+    """Spremljene ISVU tablice: [(godina mapa, semestar mapa, ime datoteke, id)]."""
+    root = _find_path(service, ROOT_FOLDER, RESULTS_FOLDER, ISVU_FOLDER)
+    out = []
+    if not root:
+        return out
+    for y in _children(service, root["id"]):
+        if "folder" not in y:
+            continue
+        for sem in _children(service, y["id"]):
+            if "folder" not in sem:
+                continue
+            for f in _children(service, sem["id"]):
+                if f["name"].lower().endswith(".xlsx"):
+                    out.append((y["name"], sem["name"], f["name"], f["id"]))
+    return out
+
+
+def load_isvu(service, items):
+    """items iz list_isvu -> jedna tablica (svi stupci kao tekst, da se šifre ne pretvore u brojeve)."""
+    frames = [pd.read_excel(io.BytesIO(_download(service, item_id)), dtype=str, keep_default_na=False)
+              for _y, _s, _n, item_id in items]
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 
 
 def share_with_link(service, link):

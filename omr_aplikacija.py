@@ -623,8 +623,13 @@ def shrink_for_preview(img_bgr, max_width=1200):
 st.set_page_config(page_title="UNIZG OMR Čitač Anketa", layout="wide")
 st.title("📋 OMR Čitač Anketa – Sveučilište u Zagrebu")
 
-form_type = st.sidebar.selectbox("Vrsta obrasca:", list(CONFIG.keys()))
-sensitivity = st.sidebar.slider("Osjetljivost na kemijsku olovku:", 0.10, 0.35, 0.18, 0.01)
+MODE_OMR, MODE_ISVU = "📄 Skenirane ankete (OMR)", "🌐 ISVU online i izvješća V4"
+work_mode = st.sidebar.radio("Rad", [MODE_OMR, MODE_ISVU], key="work_mode")
+if work_mode == MODE_OMR:
+    form_type = st.sidebar.selectbox("Vrsta obrasca:", list(CONFIG.keys()))
+    sensitivity = st.sidebar.slider("Osjetljivost na kemijsku olovku:", 0.10, 0.35, 0.18, 0.01)
+else:
+    form_type, sensitivity = "Procjena nastavnika (V4)", 0.18
 
 # --- OneDrive (poslovni račun mvinscak@unizg.hr): spremanje u oblak ---
 st.sidebar.markdown("---")
@@ -712,6 +717,11 @@ with st.sidebar.expander("Zamijeni popis kontakata" if not _contacts.empty else 
             st.rerun()
         except Exception as e:
             st.error(f"Tablica se ne može učitati: {e}")
+
+if work_mode == MODE_ISVU:
+    import isvu_ui
+    isvu_ui.render(drive, drive_service)
+    st.stop()
 
 # --- Postavke PDF izvještaja (vrijede za sve izvještaje u ovom krugu anketiranja) ---
 if reports.has_report(form_type):
@@ -1233,6 +1243,10 @@ if uploaded_files:
         final_df = edited_df.copy()
         for pos, (field, value) in enumerate(info_values.items()):
             final_df.insert(pos, field, value)
+        if reports.has_report(form_type) and reports.REPORTS[form_type]["needs_semester"]:
+            # Procjena nastavnika: semestar i godina uz svaku anketu (za izvješća V4 po semestru i godini)
+            final_df.insert(len(info_values), "Akademska godina", report_year)
+            final_df.insert(len(info_values) + 1, "Semestar", (report_semester or "").capitalize())
         st.info("Kad su ispravci spremljeni, **sljedeće: korak 3** - izvještaj i spremanje.")
 
     with step3:

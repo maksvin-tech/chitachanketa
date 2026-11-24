@@ -186,7 +186,7 @@ def _nice_step(x_max):
     return 100
 
 
-def hbar_chart(labels, series, width_cm=16, height_cm=None, suffix="", legend=False):
+def hbar_chart(labels, series, width_cm=16, height_cm=None, suffix="", legend=False, x_max=None, decimals=1):
     """Vodoravni stupčasti grafikon, nacrtan izravno u PDF (isti font kao tekst, oštar pri svakom povećanju).
 
     series: lista (vrijednosti, boja, naziv). Prvi redak je na dnu grafikona, kao u Excelu.
@@ -207,9 +207,10 @@ def hbar_chart(labels, series, width_cm=16, height_cm=None, suffix="", legend=Fa
     values = [[0 if (v is None or (isinstance(v, float) and np.isnan(v))) else float(v) for v in vals]
               for vals, _c, _n in series]
     top = max([max(v) for v in values if v] + [0])
-    x_max = 10 if top <= 0 else min(100, np.ceil(top * 1.12 / 10) * 10)
-    if top > 0 and x_max < top + 3:
-        x_max = top + 5
+    if x_max is None:
+        x_max = 10 if top <= 0 else min(100, np.ceil(top * 1.12 / 10) * 10)
+        if top > 0 and x_max < top + 3:
+            x_max = top + 5
 
     # Raspored: oznake lijevo, (legenda desno), os s oznakama dolje
     pad = 0.25 * cm
@@ -250,7 +251,7 @@ def hbar_chart(labels, series, width_cm=16, height_cm=None, suffix="", legend=Fa
             yb = yc - bar_h * n_series / 2 + bar_h * k
             if v > 0:
                 d.add(Rect(x0, yb, x_of(v) - x0, bar_h, fillColor=colors.HexColor(color), strokeColor=None))
-            d.add(String(x_of(v) + 3, yb + bar_h / 2 - value_size * 0.35, fmt(v, 1) + suffix, fontName=font,
+            d.add(String(x_of(v) + 3, yb + bar_h / 2 - value_size * 0.35, fmt(v, decimals) + suffix, fontName=font,
                          fontSize=value_size, fillColor=CHART_VALUE))
         line_h = 9
         start = yc + (len(lines) - 1) * line_h / 2 - 8 * 0.35
