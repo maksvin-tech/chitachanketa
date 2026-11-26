@@ -149,7 +149,7 @@ def _reports_section(drive, drive_service):
                f"(najmanje 1 i najmanje {reports_v4.MIN_RANK} anketa). Za Sveučilište: zbirno izvješće s rezultatima po "
                "sastavnicama (bez ključa i ranga).")
     if st.button("📥 Učitaj podatke (ISVU i papir)", key="v4_load"):
-        st.session_state.v4_rows, st.session_state.v4_notes, st.session_state.v4_periods = _load_rows(drive,
+        st.session_state.v4_rows, st.session_state.v4_notes, st.session_state.v4_dates = _load_rows(drive,
                                                                                                     drive_service)
     rows = st.session_state.get("v4_rows")
     if rows is None:
@@ -197,7 +197,7 @@ def _reports_section(drive, drive_service):
                 if sel.empty or not (sel["Oznaka nastavnika"] != "").any():
                     continue
                 try:
-                    info = st.session_state.get("v4_periods", {}).get((fac, year, sem)) if sem else None
+                    info = st.session_state.get("v4_dates", {}).get((fac, year, sem)) if sem else None
                     files, _s = reports_v4.unit_files(sel, fac, year, sem, source, report_date, info)
                 except Exception as e:
                     problems.append(f"{fac} ({period}): {e}")
@@ -220,8 +220,8 @@ def _reports_section(drive, drive_service):
                         name, pdf, _s = reports_v4.university_report(sel, year, sem, source, report_date)
                         out[f"0 {reports_v4.UNIVERSITY}/{name}"] = pdf
                         if save:
-                            drive.save_report(drive_service, V4_FORM, f"0 {reports_v4.UNIVERSITY}/{year_dir}",
-                                              name, pdf)
+                            drive.save_report(drive_service, V4_FORM, f"0 {reports_v4.UNIVERSITY}", name, pdf,
+                                              subfolder=year_dir)
                             saved += 1
                     except Exception as e:
                         problems.append(f"Sveučilište ({period}): {e}")
