@@ -620,7 +620,9 @@ def shrink_for_preview(img_bgr, max_width=1200):
 # 4. KORISNIČKO SUČELJE (STREAMLIT WEB/DESKTOP APLIKACIJA)
 # ==============================================================================
 
-st.set_page_config(page_title="UNIZG OMR Čitač Anketa", layout="wide")
+_ICON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ikona.png")
+st.set_page_config(page_title="UNIZG OMR Čitač Anketa", layout="wide",
+                   page_icon=_ICON if os.path.exists(_ICON) else "📋")
 st.title("📋 OMR Čitač Anketa – Sveučilište u Zagrebu")
 
 MODE_OMR, MODE_ISVU = "📄 Skenirane ankete (OMR)", "🌐 ISVU online i izvješća V4"
