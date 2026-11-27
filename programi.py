@@ -34,11 +34,22 @@ CORRECTIONS = {
 }
 
 
+# Kodovi dodijeljeni nakon izrade službene tablice (vrijede i ako nova tablica još nema taj kod)
+ADDED = {
+    # ADU, e-mail referade 26.11.2026.: novi diplomski studij, prvi završetci 2025./2026.
+    "0447": {"fakultet": "Akademija dramske umjetnosti", "program": "Scenski dizajn",
+             "puni_naziv": "Diplomski sveučilišni studij Scenski dizajn", "razina": DIPLOMSKI},
+}
+
+
 def _apply_corrections(programs):
     for code, fix in CORRECTIONS.items():
         for e in programs.get(code, []):
             e.update(fix)
-    return programs
+    for code, entry in ADDED.items():
+        if not any(e["puni_naziv"] == entry["puni_naziv"] for e in programs.get(code, [])):
+            programs.setdefault(code, []).append(dict(entry))
+    return dict(sorted(programs.items()))
 
 
 # Riječi koje opisuju vrstu studija - skidaju se s početka naziva da ostane ime programa
